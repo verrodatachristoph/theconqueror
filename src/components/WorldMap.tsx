@@ -1,0 +1,343 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { geoEqualEarth, geoPath, geoInterpolate } from "d3-geo";
+import { select } from "d3-selection";
+import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom";
+import "d3-transition"; // augments selection.transition() for smooth zoom
+import { feature } from "topojson-client";
+import countries from "i18n-iso-countries";
+import worldData from "world-atlas/countries-110m.json";
+import type { Trip } from "@/types/database.types";
+import {
+  aggregateByCountry,
+  flightArcs,
+  flightStopPoints,
+  destinations,
+  yearOf,
+  type Arc,
+} from "@/lib/trips";
+
+const W = 980;
+const H = 500;
+
+// numeric topojson id -> ISO alpha-3
+function idToIso3(id: string | number): string | null {
+  const s = String(id).padStart(3, "0");
+  return countries.numericToAlpha3(s) ?? null;
+}
+
+type GeoFeature = {
+  id: string | number;
+  geometry: unknown;
+  properties: { name?: string };
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const world = worldData as any;
+const landFeatures = (
+  feature(world, world.objects.countries) as unknown as { features: GeoFeature[] }
+).features;
+
+type Hover =
+  | { kind: "country"; iso3: string; name: string; trips: Trip[]; x: number; y: number }
+  | { kind: "dest"; trip: Trip; x: number; y: number }
+  | null;
+
+type MapTrip = Trip & { cover_signed?: string | null };
+
+export default function WorldMap({
+  trips,
+  showArcs = true,
+  onSelectTrip,
+}: {
+  trips: MapTrip[];
+  showArcs?: boolean;
+  onSelectTrip?: (trip: Trip) => void;
+}) {
+  const gRef = useRef<SVGGElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const [k, setK] = useState(1);
+  const [hover, setHover] = useState<Hover>(null);
+
+  const projection = useMemo(
+    () => geoEqualEarth().fitExtent([[6, 6], [W - 6, H - 6]], { type: "Sphere" }),
+    [],
+  );
+  const path = useMemo(() => geoPath(projection), [projection]);
+
+  const byCountry = useMemo(() => aggregateByCountry(trips), [trips]);
+  const tripsByCountry = useMemo(() => {
+    const m = new Map<string, Trip[]>();
+    for (const t of trips) {
+      if (!t.land_iso3) continue;
+      const list = m.get(t.land_iso3);
+      if (list) list.push(t);
+      else m.set(t.land_iso3, [t]);
+    }
+    return m;
+  }, [trips]);
+  const maxCount = useMemo(
+    () => Math.max(1, ...[...byCountry.values()].map((c) => c.count)),
+    [byCountry],
+  );
+  const arcs = useMemo(() => flightArcs(trips), [trips]);
+  const stopPoints = useMemo(() => flightStopPoints(trips), [trips]);
+  const dests = useMemo(() => destinations(trips), [trips]);
+  const coverById = useMemo(
+    () => new Map(trips.map((t) => [t.id, t.cover_signed ?? null])),
+    [trips],
+  );
+
+  // visited country fill: light -> deep teal by trip count
+  function fillFor(iso3: string | null): string {
+    if (!iso3) return "var(--color-land)";
+    const agg = byCountry.get(iso3);
+    if (!agg) return "var(--color-land)";
+    const t = Math.sqrt(agg.count / maxCount); // sqrt for gentler low end
+    return `color-mix(in oklab, var(--color-accent) ${Math.round(25 + t * 70)}%, var(--color-accent-soft))`;
+  }
+
+  // d3-zoom (wheel + pinch + drag pan), constant strokes via vector-effect
+  useEffect(() => {
+    const svg = svgRef.current;
+    const g = gRef.current;
+    if (!svg || !g) return;
+    const zoom: ZoomBehavior<SVGSVGElement, unknown> = d3zoom<SVGSVGElement, unknown>()
+      .scaleExtent([1, 9])
+      .translateExtent([[0, 0], [W, H]])
+      .on("zoom", (e) => {
+        g.setAttribute("transform", e.transform.toString());
+        setK(e.transform.k);
+      });
+    zoomRef.current = zoom;
+    const sel = select(svg);
+    sel.call(zoom);
+    sel.on("dblclick.zoom", null);
+    return () => {
+      sel.on(".zoom", null);
+    };
+  }, []);
+
+  // Auto-fit: when the visible countries change (filter), zoom to their extent.
+  const fitTransform = useMemo(() => {
+    const visited = landFeatures.filter((f) => {
+      const iso = idToIso3(f.id);
+      return iso ? byCountry.has(iso) : false;
+    });
+    if (!visited.length) return zoomIdentity;
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const f of visited) {
+      const b = path.bounds(f as never);
+      if (!Number.isFinite(b[0][0])) continue;
+      x0 = Math.min(x0, b[0][0]);
+      y0 = Math.min(y0, b[0][1]);
+      x1 = Math.max(x1, b[1][0]);
+      y1 = Math.max(y1, b[1][1]);
+    }
+    if (!Number.isFinite(x0)) return zoomIdentity;
+    const bw = Math.max(1, x1 - x0);
+    const bh = Math.max(1, y1 - y0);
+    const scale = Math.max(1, Math.min(9, 0.9 * Math.min(W / bw, H / bh)));
+    const tx = W / 2 - (scale * (x0 + x1)) / 2;
+    const ty = H / 2 - (scale * (y0 + y1)) / 2;
+    return zoomIdentity.translate(tx, ty).scale(scale);
+  }, [byCountry, path]);
+
+  useEffect(() => {
+    const svg = svgRef.current;
+    const zoom = zoomRef.current;
+    if (!svg || !zoom) return;
+    select(svg).transition().duration(650).call(zoom.transform, fitTransform);
+  }, [fitTransform]);
+
+  const arcPath = (a: Arc) => {
+    const interp = geoInterpolate(a.from, a.to);
+    const pts = Array.from({ length: 41 }, (_, i) => interp(i / 40));
+    return path({ type: "LineString", coordinates: pts } as never);
+  };
+
+  const moveTip = (e: React.PointerEvent | React.MouseEvent, base: Omit<Hover & object, "x" | "y">) => {
+    const rect = wrapRef.current?.getBoundingClientRect();
+    const x = e.clientX - (rect?.left ?? 0);
+    const y = e.clientY - (rect?.top ?? 0);
+    setHover({ ...(base as object), x, y } as Hover);
+  };
+
+  return (
+    <div ref={wrapRef} className="relative w-full overflow-hidden rounded-xl">
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="xMidYMid meet"
+        className="map-svg block h-auto w-full"
+        style={{ background: "var(--color-ocean)" }}
+        onPointerLeave={() => setHover(null)}
+      >
+        <defs>
+          <clipPath id="photo-dot-clip" clipPathUnits="userSpaceOnUse">
+            <circle cx={0} cy={0} r={10} />
+          </clipPath>
+        </defs>
+        <g ref={gRef}>
+          {/* sphere outline */}
+          <path d={path({ type: "Sphere" } as never) ?? undefined} fill="var(--color-ocean)" />
+
+          {/* countries */}
+          {landFeatures.map((f, i) => {
+            const iso3 = idToIso3(f.id);
+            const visited = iso3 ? byCountry.has(iso3) : false;
+            return (
+              <path
+                key={i}
+                d={path(f as never) ?? undefined}
+                fill={fillFor(iso3)}
+                stroke="var(--color-land-edge)"
+                strokeWidth={0.5}
+                vectorEffect="non-scaling-stroke"
+                className={visited ? "cursor-pointer transition-[fill] duration-200" : ""}
+                onPointerMove={(e) => {
+                  if (!visited || !iso3) return;
+                  moveTip(e, {
+                    kind: "country",
+                    iso3,
+                    name: f.properties?.name ?? iso3,
+                    trips: tripsByCountry.get(iso3) ?? [],
+                  } as never);
+                }}
+                onPointerLeave={() => setHover(null)}
+              />
+            );
+          })}
+
+          {/* flight arcs */}
+          {showArcs && arcs.map((a, i) => (
+            <path
+              key={`arc-${i}`}
+              d={arcPath(a) ?? undefined}
+              fill="none"
+              stroke="var(--color-arc)"
+              strokeWidth={1.2}
+              strokeOpacity={0.7}
+              strokeLinecap="round"
+              vectorEffect="non-scaling-stroke"
+              pointerEvents="none"
+            />
+          ))}
+
+          {/* flight stop waypoints */}
+          {showArcs &&
+            stopPoints.map((c, i) => {
+              const p = projection(c);
+              if (!p) return null;
+              return (
+                <circle
+                  key={`stop-${i}`}
+                  cx={p[0]}
+                  cy={p[1]}
+                  r={1.8 / k}
+                  fill="var(--color-surface)"
+                  stroke="var(--color-arc)"
+                  strokeWidth={1 / k}
+                  pointerEvents="none"
+                />
+              );
+            })}
+
+          {/* destination points — cover photo marker if available, else a dot */}
+          {dests.map((d, i) => {
+            const p = projection(d.coord);
+            if (!p) return null;
+            const cover = coverById.get(d.trip.id);
+            if (cover) {
+              return (
+                <g
+                  key={`dot-${i}`}
+                  transform={`translate(${p[0]},${p[1]}) scale(${1 / k})`}
+                  className="cursor-pointer"
+                  onPointerMove={(e) => moveTip(e, { kind: "dest", trip: d.trip } as never)}
+                  onPointerLeave={() => setHover(null)}
+                  onClick={() => onSelectTrip?.(d.trip)}
+                >
+                  <circle r={11} fill="var(--color-surface)" />
+                  <image
+                    href={cover}
+                    x={-10}
+                    y={-10}
+                    width={20}
+                    height={20}
+                    clipPath="url(#photo-dot-clip)"
+                    preserveAspectRatio="xMidYMid slice"
+                  />
+                  <circle r={10} fill="none" stroke="var(--color-surface)" strokeWidth={1.5} />
+                </g>
+              );
+            }
+            return (
+              <circle
+                key={`dot-${i}`}
+                cx={p[0]}
+                cy={p[1]}
+                r={2.6 / k}
+                fill="var(--color-arc)"
+                stroke="var(--color-surface)"
+                strokeWidth={1 / k}
+                className="cursor-pointer"
+                onPointerMove={(e) => moveTip(e, { kind: "dest", trip: d.trip } as never)}
+                onPointerLeave={() => setHover(null)}
+                onClick={() => onSelectTrip?.(d.trip)}
+              />
+            );
+          })}
+        </g>
+      </svg>
+
+      {hover && <MapTooltip hover={hover} />}
+    </div>
+  );
+}
+
+function MapTooltip({ hover }: { hover: NonNullable<Hover> }) {
+  const style: React.CSSProperties = {
+    left: Math.max(8, hover.x + 12),
+    top: Math.max(8, hover.y + 12),
+  };
+  return (
+    <div
+      className="pointer-events-none absolute z-10 max-w-[15rem] rounded-xl border border-line bg-surface/95 p-3 text-sm shadow-lg backdrop-blur"
+      style={style}
+    >
+      {hover.kind === "country" ? (
+        <>
+          <div className="font-medium text-ink">{hover.name}</div>
+          <div className="mt-0.5 text-xs text-muted">
+            {hover.trips.length} {hover.trips.length === 1 ? "Aufenthalt" : "Aufenthalte"}
+          </div>
+          <ul className="mt-1.5 space-y-0.5 text-xs text-ink/80">
+            {hover.trips.slice(0, 6).map((t) => (
+              <li key={t.id} className="flex justify-between gap-3">
+                <span className="truncate">{t.ort}</span>
+                <span className="shrink-0 text-muted">{yearOf(t) ?? ""}</span>
+              </li>
+            ))}
+            {hover.trips.length > 6 && (
+              <li className="text-muted">+{hover.trips.length - 6} weitere</li>
+            )}
+          </ul>
+        </>
+      ) : (
+        <>
+          <div className="font-medium text-ink">
+            {hover.trip.ort}
+            {hover.trip.land ? `, ${hover.trip.land}` : ""}
+          </div>
+          <div className="mt-0.5 text-xs text-muted">
+            {yearOf(hover.trip) ?? ""} · {hover.trip.anreise ?? "—"} · {hover.trip.tage ?? "?"} Tage
+          </div>
+        </>
+      )}
+    </div>
+  );
+}

@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────────────────────────────────
+   The Conqueror — design tokens
+   Calm, warm, "wertig". The map is the star; the UI recedes around it.
+   Retune the palette here; everything reads from these tokens.
+   ────────────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-parchment: #f4f0e9; /* app background */
+  --color-surface: #fbf9f5; /* cards / panels */
+  --color-surface-2: #f0ebe2; /* subtle raised fills */
+  --color-ink: #2b2723; /* primary text */
+  --color-muted: #8c8378; /* secondary text */
+  --color-line: #e6dfd4; /* hairline borders */
+
+  --color-ocean: #e7edee; /* map sea */
+  --color-land: #ddd5c9; /* unvisited country */
+  --color-land-edge: #c8bdac; /* country borders */
+
+  --color-accent: #2f6f6a; /* primary accent (teal) */
+  --color-accent-soft: #cfe2de; /* light teal wash */
+  --color-arc: #c2784f; /* flight arcs (terracotta) */
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+
+  --radius-xl: 1.1rem;
+}
+
+html {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-parchment);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The map should feel like a quiet object, not a clickable web element */
+.map-svg {
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
