@@ -15,6 +15,7 @@ import {
 import type { Trip } from "@/types/database.types";
 import { yearOf, totalFlights } from "@/lib/trips";
 import StatTile from "@/components/StatTile";
+import EmptyState from "@/components/EmptyState";
 import { Stagger, Item } from "@/components/motion";
 
 const ANREISE_COLORS: Record<string, string> = {
@@ -72,7 +73,7 @@ export default function Stats({ trips }: { trips: Trip[] }) {
   }, [trips]);
 
   if (!trips.length) {
-    return <p className="text-sm text-muted">Keine Aufenthalte für diese Auswahl.</p>;
+    return <EmptyState icon="📊" title="Noch keine Daten" hint="Sobald Reisen zur Auswahl passen, erscheinen hier die Kennzahlen." />;
   }
 
   return (

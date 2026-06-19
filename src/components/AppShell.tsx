@@ -78,7 +78,7 @@ export default function AppShell({
       <TopNav>
         <button
           onClick={openNew}
-          className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02]"
+          className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
         >
           + Neuer Aufenthalt
         </button>

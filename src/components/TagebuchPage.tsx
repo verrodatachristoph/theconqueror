@@ -4,10 +4,12 @@ import { useMemo, useState } from "react";
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
 import { filterTrips, personColor, yearOf } from "@/lib/trips";
+import { flagEmoji } from "@/lib/iso";
 import TopNav from "@/components/TopNav";
 import PersonFilter from "@/components/PersonFilter";
 import TripDetail from "@/components/TripDetail";
 import TripForm from "@/components/TripForm";
+import EmptyState from "@/components/EmptyState";
 import { Reveal } from "@/components/motion";
 
 const ANREISE_ICON: Record<string, string> = { Auto: "🚗", Flugzeug: "✈️", Zug: "🚆" };
@@ -105,7 +107,9 @@ export default function TagebuchPage({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
                       <h3 className="truncate text-base font-semibold text-ink">{t.ort}</h3>
-                      <span className="shrink-0 text-xs text-muted">{t.land}</span>
+                      <span className="shrink-0 text-xs text-muted">
+                        {flagEmoji(t.land_iso3)} {t.land}
+                      </span>
                     </div>
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
                       <span>
@@ -141,7 +145,9 @@ export default function TagebuchPage({
         </Reveal>
       ))}
 
-        {!byYear.length && <p className="text-sm text-muted">Keine Aufenthalte für diese Auswahl.</p>}
+        {!byYear.length && (
+          <EmptyState icon="📖" title="Noch keine Einträge" hint="Für diese Auswahl gibt es keine Reisen im Tagebuch." />
+        )}
       </div>
 
       {detail && (

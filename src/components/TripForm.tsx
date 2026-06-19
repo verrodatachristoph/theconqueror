@@ -372,7 +372,7 @@ export default function TripForm({
                 type="button"
                 onClick={handleSave}
                 disabled={saving}
-                className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-surface disabled:opacity-50"
+                className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-surface transition-transform active:scale-95 disabled:opacity-50"
               >
                 {saving ? "Speichern…" : "Speichern"}
               </button>

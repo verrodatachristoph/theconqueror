@@ -3,6 +3,8 @@
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
 import { personColor, yearOf } from "@/lib/trips";
+import { flagEmoji } from "@/lib/iso";
+import EmptyState from "@/components/EmptyState";
 
 const ANREISE_ICON: Record<string, string> = { Auto: "🚗", Flugzeug: "✈️", Zug: "🚆" };
 
@@ -17,7 +19,10 @@ export default function TripList({
 }) {
   const nameByCode = new Map(persons.map((p) => [p.code, p.name]));
 
-  if (!trips.length) return <p className="text-sm text-muted">Keine Aufenthalte für diese Auswahl.</p>;
+  if (!trips.length)
+    return (
+      <EmptyState icon="📍" title="Keine Aufenthalte" hint="Für diese Auswahl gibt es nichts zu zeigen — Filter anpassen oder eine Reise anlegen." />
+    );
 
   return (
     <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
@@ -43,7 +48,9 @@ export default function TripList({
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="truncate font-medium text-ink">{t.ort}</span>
-                  <span className="shrink-0 text-xs text-muted">{t.land}</span>
+                  <span className="shrink-0 text-xs text-muted">
+                    {flagEmoji(t.land_iso3)} {t.land}
+                  </span>
                   {needsAirport && (
                     <span className="shrink-0 rounded-full bg-[var(--color-arc)]/15 px-2 py-0.5 text-[10px] font-medium text-[var(--color-arc)]">
                       Abflughafen nachtragen

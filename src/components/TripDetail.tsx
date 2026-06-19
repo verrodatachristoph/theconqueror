@@ -6,6 +6,7 @@ import type { Person } from "@/types/database.types";
 import type { TripWithMedia, SignedPhoto } from "@/lib/data";
 import { fetchTripPhotos } from "@/app/actions";
 import { personColor, yearOf } from "@/lib/trips";
+import { flagEmoji } from "@/lib/iso";
 
 const ANREISE_ICON: Record<string, string> = { Auto: "🚗", Flugzeug: "✈️", Zug: "🚆" };
 
@@ -35,11 +36,14 @@ export default function TripDetail({
 
   const who = persons.filter((p) => trip.wer_von_uns?.includes(p.code));
   const isFlight = trip.anreise === "Flugzeug";
-  const route = isFlight
-    ? [trip.abflug_iata, ...(trip.flug_stops ?? []).map((s) => s.iata), trip.ziel_iata]
-        .filter(Boolean)
-        .join(" → ")
-    : null;
+  const routeNodes =
+    isFlight && trip.abflug_iata
+      ? [
+          trip.abflug_iata,
+          ...(trip.flug_stops ?? []).map((s) => s.iata),
+          trip.ziel_iata ?? trip.ort ?? "",
+        ].filter(Boolean)
+      : [];
 
   return (
     <motion.div
@@ -76,7 +80,9 @@ export default function TripDetail({
           </button>
           <div className="absolute bottom-3 left-4 right-4 text-white">
             <h2 className="text-2xl font-semibold leading-tight drop-shadow">{trip.ort}</h2>
-            <p className="text-sm opacity-90 drop-shadow">{trip.land}</p>
+            <p className="text-sm opacity-90 drop-shadow">
+              {flagEmoji(trip.land_iso3)} {trip.land}
+            </p>
           </div>
         </div>
 
@@ -87,10 +93,24 @@ export default function TripDetail({
             <Meta label="Dauer" value={`${trip.tage ?? "?"} Tage`} />
             <Meta
               label="Anreise"
-              value={`${ANREISE_ICON[trip.anreise ?? ""] ?? ""} ${trip.anreise ?? "—"}${route ? ` (${route})` : ""}`}
+              value={`${ANREISE_ICON[trip.anreise ?? ""] ?? ""} ${trip.anreise ?? "—"}`}
             />
             <Meta label="Art" value={trip.art ?? "—"} />
           </div>
+
+          {routeNodes.length >= 2 && (
+            <div>
+              <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">Flugroute</div>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {routeNodes.map((n, i) => (
+                  <span key={i} className="flex items-center gap-1.5">
+                    {i > 0 && <span className="text-xs text-[var(--color-arc)]">✈</span>}
+                    <span className="rounded-md bg-surface-2 px-2 py-1 text-xs font-semibold text-ink">{n}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Wer */}
           <div>
@@ -145,7 +165,7 @@ export default function TripDetail({
             <span className="text-xs text-muted">{yearOf(trip) ?? ""}</span>
             <button
               onClick={() => onEdit(trip)}
-              className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-surface"
+              className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-surface transition-transform active:scale-95"
             >
               Bearbeiten
             </button>
