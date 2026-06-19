@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { Person } from "@/types/database.types";
@@ -49,29 +49,9 @@ export default function ProfilPage({
     <main className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8 md:py-10">
       <TopNav />
 
-      {/* Person switcher */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        {persons.map((p) => {
-          const active = p.code === person.code;
-          return (
-            <Link
-              key={p.code}
-              href={`/profil/${p.code}`}
-              className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-medium transition-all ${
-                active ? "border-transparent text-white shadow-sm" : "border-line bg-surface text-ink hover:border-ink/30"
-              }`}
-              style={active ? { backgroundColor: personColor(persons, p.code) } : undefined}
-            >
-              <span
-                className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                style={{ backgroundColor: active ? "rgba(255,255,255,0.25)" : personColor(persons, p.code) }}
-              >
-                {p.code}
-              </span>
-              {p.name}
-            </Link>
-          );
-        })}
+      {/* Person submenu */}
+      <div className="mb-6">
+        <PersonMenu persons={persons} current={person} />
       </div>
 
       {/* Hero */}
@@ -169,4 +149,56 @@ export default function ProfilPage({
 
 function Tile({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return <StatTile label={label} value={value} sub={sub} />;
+}
+
+function PersonMenu({ persons, current }: { persons: Person[]; current: Person }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
+  const dot = (p: Person) => (
+    <span
+      className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
+      style={{ backgroundColor: p.farbe }}
+    >
+      {p.code}
+    </span>
+  );
+
+  return (
+    <div ref={ref} className="relative inline-block">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-2 text-sm font-medium transition-colors hover:border-ink/30"
+      >
+        {dot(current)}
+        {current.name}
+        <span className={`text-xs text-muted transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
+      </button>
+      {open && (
+        <div className="absolute left-0 z-20 mt-1 min-w-[12rem] rounded-xl border border-line bg-surface p-1 shadow-lg">
+          {persons.map((p) => (
+            <Link
+              key={p.code}
+              href={`/profil/${p.code}`}
+              onClick={() => setOpen(false)}
+              className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors hover:bg-surface-2 ${
+                p.code === current.code ? "bg-surface-2 font-medium" : ""
+              }`}
+            >
+              {dot(p)}
+              {p.name}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }

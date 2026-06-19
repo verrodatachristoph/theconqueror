@@ -52,7 +52,7 @@ export default function ZielePage({
   }
 
   return (
-    <main className="mx-auto w-full max-w-[1100px] px-4 py-6 md:px-8 md:py-10">
+    <main className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8 md:py-10">
       <TopNav />
 
       {/* Flight kilometres */}

@@ -60,7 +60,7 @@ export default function TagebuchPage({
   const nameByCode = new Map(persons.map((p) => [p.code, p.name]));
 
   return (
-    <main className="mx-auto w-full max-w-[1000px] px-4 py-6 md:px-8 md:py-10">
+    <main className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8 md:py-10">
       <TopNav />
 
       <div className="mb-8">
@@ -71,6 +71,8 @@ export default function TagebuchPage({
           onAll={() => setEnabled(new Set(allCodes))}
         />
       </div>
+
+      <div className="max-w-3xl">
 
       {byYear.map(([year, list]) => (
         <Reveal as="section" key={year} className="mb-8">
@@ -139,7 +141,8 @@ export default function TagebuchPage({
         </Reveal>
       ))}
 
-      {!byYear.length && <p className="text-sm text-muted">Keine Aufenthalte für diese Auswahl.</p>}
+        {!byYear.length && <p className="text-sm text-muted">Keine Aufenthalte für diese Auswahl.</p>}
+      </div>
 
       {detail && (
         <TripDetail

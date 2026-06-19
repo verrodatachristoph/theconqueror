@@ -37,6 +37,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Prevent iOS Safari from zooming when focusing a small input/select */
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
 /* Hide scrollbar (used for the horizontally-scrollable mobile nav) */
 .no-scrollbar {
   scrollbar-width: none;
