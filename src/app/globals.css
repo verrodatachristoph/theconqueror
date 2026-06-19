@@ -37,6 +37,15 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Hide scrollbar (used for the horizontally-scrollable mobile nav) */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* The map should feel like a quiet object, not a clickable web element */
 .map-svg {
   touch-action: none;

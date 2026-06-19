@@ -10,27 +10,26 @@ const LINKS = [
   { href: "/statistik", label: "Statistik", match: undefined },
   { href: "/profil", label: "Profile", match: "/profil" },
   { href: "/ziele", label: "Ziele", match: undefined },
-  { href: "/admin", label: "Admin", match: undefined },
 ];
 
 export default function TopNav({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname();
+  const isActive = (href: string, match?: string) => (match ? pathname.startsWith(match) : pathname === href);
 
   return (
-    <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <div className="flex items-center gap-5">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">The Conqueror</h1>
-          <p className="hidden text-xs text-muted sm:block">Wo die Familie schon überall war.</p>
-        </div>
-        <nav className="flex items-center gap-1 rounded-full border border-line bg-surface p-1">
+    <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-center gap-3 md:gap-4">
+        <Link href="/" className="shrink-0 text-lg font-semibold tracking-tight md:text-xl">
+          The&nbsp;Conqueror
+        </Link>
+        <nav className="no-scrollbar -mx-1 flex items-center gap-1 overflow-x-auto rounded-full border border-line bg-surface p-1">
           {LINKS.map((l) => {
-            const active = l.match ? pathname.startsWith(l.match) : pathname === l.href;
+            const active = isActive(l.href, l.match);
             return (
               <Link
                 key={l.href}
                 href={l.href}
-                className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                   active ? "bg-ink text-surface" : "text-muted hover:text-ink"
                 }`}
               >
@@ -41,8 +40,20 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
         </nav>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         {children}
+        <Link
+          href="/admin"
+          title="Admin"
+          aria-label="Admin"
+          className={`flex h-9 w-9 items-center justify-center rounded-full border text-base transition-colors ${
+            pathname.startsWith("/admin")
+              ? "border-ink bg-ink text-surface"
+              : "border-line text-muted hover:text-ink"
+          }`}
+        >
+          ⚙
+        </Link>
         <button
           onClick={() => logout()}
           className="rounded-full border border-line px-3 py-2 text-sm text-muted transition-colors hover:text-ink"

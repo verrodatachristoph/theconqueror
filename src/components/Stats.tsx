@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import type { Trip } from "@/types/database.types";
 import { yearOf, totalFlights } from "@/lib/trips";
+import StatTile from "@/components/StatTile";
 
 const ANREISE_COLORS: Record<string, string> = {
   Auto: "var(--color-accent)",
@@ -169,11 +170,5 @@ export default function Stats({ trips }: { trips: Trip[] }) {
 }
 
 function Kpi({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
-  return (
-    <div className="rounded-2xl border border-line bg-surface p-4">
-      <div className="truncate text-xl font-semibold tabular-nums text-ink">{value}</div>
-      {sub && <div className="truncate text-xs text-muted">{sub}</div>}
-      <div className="mt-1 text-xs font-medium uppercase tracking-wide text-muted">{label}</div>
-    </div>
-  );
+  return <StatTile label={label} value={value} sub={sub} />;
 }

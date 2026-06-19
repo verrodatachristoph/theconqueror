@@ -11,6 +11,7 @@ import TopNav from "@/components/TopNav";
 import TripList from "@/components/TripList";
 import TripDetail from "@/components/TripDetail";
 import TripForm from "@/components/TripForm";
+import StatTile from "@/components/StatTile";
 
 const WorldMap = dynamic(() => import("@/components/WorldMap"), {
   ssr: false,
@@ -166,13 +167,5 @@ export default function ProfilPage({
 }
 
 function Tile({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
-  return (
-    <div className="rounded-2xl border border-line bg-surface p-4">
-      <div className="truncate text-xl font-semibold text-ink" title={String(value)}>
-        {value}
-      </div>
-      {sub && <div className="truncate text-xs text-muted">{sub}</div>}
-      <div className="mt-1 text-xs font-medium uppercase tracking-wide text-muted">{label}</div>
-    </div>
-  );
+  return <StatTile label={label} value={value} sub={sub} />;
 }

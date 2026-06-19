@@ -17,6 +17,7 @@ import { personStats, headToHead, overviewStats, type PersonStats, type Home } f
 import TopNav from "@/components/TopNav";
 import PersonFilter from "@/components/PersonFilter";
 import Stats from "@/components/Stats";
+import StatTile from "@/components/StatTile";
 
 export default function StatistikPage({
   trips,
@@ -189,15 +190,7 @@ export default function StatistikPage({
 }
 
 function HiTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-2xl border border-line bg-surface p-4">
-      <div className="truncate text-xl font-semibold text-ink" title={value}>
-        {value}
-      </div>
-      {sub && <div className="truncate text-xs text-muted">{sub}</div>}
-      <div className="mt-1 text-xs font-medium uppercase tracking-wide text-muted">{label}</div>
-    </div>
-  );
+  return <StatTile label={label} value={value} sub={sub} />;
 }
 
 function PersonSelect({
