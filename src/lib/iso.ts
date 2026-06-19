@@ -40,3 +40,13 @@ export function germanCountryNames(): string[] {
   const names = countries.getNames("de");
   return Object.values(names).sort((a, b) => a.localeCompare(b, "de"));
 }
+
+/** Flag emoji from an ISO alpha-3 code ("" if unknown). */
+export function flagEmoji(iso3: string | null | undefined): string {
+  if (!iso3) return "";
+  const a2 = countries.alpha3ToAlpha2(iso3);
+  if (!a2) return "";
+  return a2
+    .toUpperCase()
+    .replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)));
+}

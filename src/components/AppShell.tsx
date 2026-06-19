@@ -93,25 +93,8 @@ export default function AppShell({
         />
       </div>
 
-      {/* Map hero */}
-      <section className="mb-6 rounded-2xl border border-line bg-surface p-2 shadow-sm md:p-3">
-        <div className="mb-2 flex justify-end px-1">
-          <button
-            onClick={() => setShowArcs((v) => !v)}
-            aria-pressed={showArcs}
-            className={`flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors ${
-              showArcs
-                ? "border-[var(--color-arc)] bg-[var(--color-arc)]/10 text-[var(--color-arc)]"
-                : "border-line bg-surface text-muted hover:text-ink"
-            }`}
-          >
-            <span
-              className="h-2 w-4 rounded-full"
-              style={{ background: showArcs ? "var(--color-arc)" : "var(--color-line)" }}
-            />
-            Fluglinien {showArcs ? "an" : "aus"}
-          </button>
-        </div>
+      {/* Map hero — full-bleed on mobile, card on larger screens */}
+      <section className="relative mb-6 -mx-4 border-y border-line bg-surface shadow-sm sm:mx-0 sm:rounded-2xl sm:border sm:p-3">
         <WorldMap
           trips={byPerson}
           showArcs={showArcs}
@@ -120,6 +103,21 @@ export default function AppShell({
             if (full) openDetail(full);
           }}
         />
+        <button
+          onClick={() => setShowArcs((v) => !v)}
+          aria-pressed={showArcs}
+          className={`absolute right-3 top-3 z-10 flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm shadow-sm backdrop-blur transition-colors ${
+            showArcs
+              ? "border-[var(--color-arc)] bg-[var(--color-arc)]/15 text-[var(--color-arc)]"
+              : "border-line bg-surface/90 text-muted hover:text-ink"
+          }`}
+        >
+          <span
+            className="h-2 w-4 rounded-full"
+            style={{ background: showArcs ? "var(--color-arc)" : "var(--color-line)" }}
+          />
+          Fluglinien {showArcs ? "an" : "aus"}
+        </button>
       </section>
 
       {/* Stats */}

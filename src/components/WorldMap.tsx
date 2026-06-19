@@ -8,6 +8,7 @@ import "d3-transition"; // augments selection.transition() for smooth zoom
 import { feature } from "topojson-client";
 import countries from "i18n-iso-countries";
 import worldData from "world-atlas/countries-110m.json";
+import { flagEmoji } from "@/lib/iso";
 import type { Trip } from "@/types/database.types";
 import {
   aggregateByCountry,
@@ -61,6 +62,7 @@ export default function WorldMap({
   const zoomRef = useRef<ZoomBehavior<SVGSVGElement, unknown> | null>(null);
   const [k, setK] = useState(1);
   const [hover, setHover] = useState<Hover>(null);
+  const [hoveredIso, setHoveredIso] = useState<string | null>(null);
 
   const projection = useMemo(
     () => geoEqualEarth().fitExtent([[6, 6], [W - 6, H - 6]], { type: "Sphere" }),
@@ -189,17 +191,19 @@ export default function WorldMap({
           {landFeatures.map((f, i) => {
             const iso3 = idToIso3(f.id);
             const visited = iso3 ? byCountry.has(iso3) : false;
+            const hl = visited && iso3 === hoveredIso;
             return (
               <path
                 key={i}
                 d={path(f as never) ?? undefined}
                 fill={fillFor(iso3)}
-                stroke="var(--color-land-edge)"
-                strokeWidth={0.5}
+                stroke={hl ? "var(--color-ink)" : "var(--color-land-edge)"}
+                strokeWidth={hl ? 1.2 : 0.5}
                 vectorEffect="non-scaling-stroke"
-                className={visited ? "cursor-pointer transition-[fill] duration-200" : ""}
+                className={visited ? "cursor-pointer transition-[fill,stroke] duration-150" : ""}
                 onPointerMove={(e) => {
                   if (!visited || !iso3) return;
+                  setHoveredIso(iso3);
                   moveTip(e, {
                     kind: "country",
                     iso3,
@@ -207,7 +211,10 @@ export default function WorldMap({
                     trips: tripsByCountry.get(iso3) ?? [],
                   } as never);
                 }}
-                onPointerLeave={() => setHover(null)}
+                onPointerLeave={() => {
+                  setHover(null);
+                  setHoveredIso(null);
+                }}
               />
             );
           })}
@@ -311,7 +318,9 @@ function MapTooltip({ hover }: { hover: NonNullable<Hover> }) {
     >
       {hover.kind === "country" ? (
         <>
-          <div className="font-medium text-ink">{hover.name}</div>
+          <div className="font-medium text-ink">
+            {flagEmoji(hover.iso3)} {hover.name}
+          </div>
           <div className="mt-0.5 text-xs text-muted">
             {hover.trips.length} {hover.trips.length === 1 ? "Aufenthalt" : "Aufenthalte"}
           </div>
