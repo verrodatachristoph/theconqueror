@@ -50,7 +50,8 @@ export default function ProfilPage({
       <TopNav />
 
       {/* Person submenu */}
-      <div className="mb-6">
+      <div className="mb-6 flex items-center gap-2">
+        <span className="text-xs font-medium uppercase tracking-wide text-muted">Profil von</span>
         <PersonMenu persons={persons} current={person} />
       </div>
 
@@ -176,14 +177,22 @@ function PersonMenu({ persons, current }: { persons: Person[]; current: Person }
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-2 text-sm font-medium transition-colors hover:border-ink/30"
+        title="Andere Person wählen"
+        className="flex items-center gap-2 rounded-full border border-line bg-surface py-1.5 pl-2 pr-1 text-sm font-medium shadow-sm transition-colors hover:border-ink/30"
       >
         {dot(current)}
         {current.name}
-        <span className={`text-xs text-muted transition-transform ${open ? "rotate-180" : ""}`}>▾</span>
+        <span className="ml-1 flex h-6 w-6 items-center justify-center rounded-full bg-surface-2 text-muted">
+          <svg width="12" height="12" viewBox="0 0 12 12" className={`transition-transform ${open ? "rotate-180" : ""}`}>
+            <path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </span>
       </button>
       {open && (
-        <div className="absolute left-0 z-20 mt-1 min-w-[12rem] rounded-xl border border-line bg-surface p-1 shadow-lg">
+        <div className="absolute left-0 z-20 mt-1 min-w-[13rem] rounded-xl border border-line bg-surface p-1 shadow-lg">
+          <div className="px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted">
+            Person wählen
+          </div>
           {persons.map((p) => (
             <Link
               key={p.code}

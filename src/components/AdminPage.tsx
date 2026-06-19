@@ -45,14 +45,15 @@ export default function AdminPage({
   const refresh = () => startTransition(() => router.refresh());
 
   return (
-    <main className="mx-auto w-full max-w-[900px] px-4 py-6 md:px-8 md:py-10">
+    <main className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8 md:py-10">
       <TopNav />
-      <h1 className="mb-6 text-2xl font-semibold tracking-tight">Admin</h1>
-
-      <PersonsSection persons={persons} onChange={refresh} />
-      <SettingsSection settings={settings} onChange={refresh} />
-      <PasswordSection />
-      <AchievementsSection defs={achievementDefs} onChange={refresh} />
+      <div className="max-w-4xl">
+        <h1 className="mb-6 text-2xl font-semibold tracking-tight">Admin</h1>
+        <PersonsSection persons={persons} onChange={refresh} />
+        <SettingsSection settings={settings} onChange={refresh} />
+        <PasswordSection />
+        <AchievementsSection defs={achievementDefs} onChange={refresh} />
+      </div>
     </main>
   );
 }
