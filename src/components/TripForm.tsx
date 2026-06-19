@@ -7,6 +7,7 @@ import type { TripWithMedia } from "@/lib/data";
 import type { SignedPhoto } from "@/lib/data";
 import { toIso3, germanCountryNames } from "@/lib/iso";
 import { personColor, computeTage } from "@/lib/trips";
+import { motion } from "framer-motion";
 import { compressImage } from "@/lib/image";
 import AirportInput from "@/components/AirportInput";
 import {
@@ -131,13 +132,19 @@ export default function TripForm({
   }
 
   return (
-    <div
+    <motion.div
       className="fixed inset-0 z-50 flex items-end justify-center bg-ink/30 p-0 backdrop-blur-sm sm:items-center sm:p-6"
       onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
     >
-      <div
+      <motion.div
         className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl bg-surface p-5 shadow-2xl sm:rounded-3xl sm:p-6"
         onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0, y: 24, scale: 0.99 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold">{isEdit ? "Aufenthalt bearbeiten" : "Neuer Aufenthalt"}</h2>
@@ -372,8 +379,8 @@ export default function TripForm({
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 

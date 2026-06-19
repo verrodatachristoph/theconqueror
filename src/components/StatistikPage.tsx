@@ -18,6 +18,7 @@ import TopNav from "@/components/TopNav";
 import PersonFilter from "@/components/PersonFilter";
 import Stats from "@/components/Stats";
 import StatTile from "@/components/StatTile";
+import { Stagger } from "@/components/motion";
 
 export default function StatistikPage({
   trips,
@@ -73,7 +74,7 @@ export default function StatistikPage({
       {/* Rekorde & Highlights */}
       <section className="mb-10">
         <h2 className="mb-3 text-lg font-semibold">Rekorde & Highlights</h2>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        <Stagger className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
           <HiTile
             label="Reisefreudigstes Jahr"
             value={ov.busiestYear ? String(ov.busiestYear[0]) : "–"}
@@ -92,7 +93,7 @@ export default function StatistikPage({
             value={ov.farthest ? ov.farthest.ort : "–"}
             sub={ov.farthest ? `${ov.farthest.km.toLocaleString("de")} km ab ${ov.homeLabel}` : undefined}
           />
-        </div>
+        </Stagger>
       </section>
 
       {/* Saison + Top Länder */}

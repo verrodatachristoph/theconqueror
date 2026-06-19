@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia, SignedPhoto } from "@/lib/data";
 import { fetchTripPhotos } from "@/app/actions";
@@ -41,13 +42,19 @@ export default function TripDetail({
     : null;
 
   return (
-    <div
+    <motion.div
       className="fixed inset-0 z-50 flex items-end justify-center bg-ink/30 p-0 backdrop-blur-sm sm:items-center sm:p-6"
       onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
     >
-      <div
+      <motion.div
         className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-surface shadow-2xl sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
+        initial={{ opacity: 0, y: 24, scale: 0.99 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       >
         {/* Cover header */}
         <div className="relative h-44 w-full overflow-hidden rounded-t-3xl bg-surface-2 sm:h-52">
@@ -144,7 +151,7 @@ export default function TripDetail({
             </button>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {lightbox !== null && photos[lightbox] && (
         <Lightbox
@@ -154,7 +161,7 @@ export default function TripDetail({
           onNav={(i) => setLightbox((i + photos.length) % photos.length)}
         />
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -190,9 +197,12 @@ function Lightbox({
 
   const photo = photos[index];
   return (
-    <div
+    <motion.div
       className="fixed inset-0 z-[60] flex items-center justify-center bg-ink/90 p-4"
       onClick={onClose}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.18 }}
     >
       <button className="absolute right-4 top-4 text-2xl text-white/80" onClick={onClose} aria-label="Schließen">
         ✕
@@ -226,6 +236,6 @@ function Lightbox({
         {index + 1} / {photos.length}
         {photo.caption ? ` · ${photo.caption}` : ""}
       </div>
-    </div>
+    </motion.div>
   );
 }

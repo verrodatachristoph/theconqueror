@@ -12,6 +12,7 @@ import TripList from "@/components/TripList";
 import TripDetail from "@/components/TripDetail";
 import TripForm from "@/components/TripForm";
 import StatTile from "@/components/StatTile";
+import { Stagger } from "@/components/motion";
 
 const WorldMap = dynamic(() => import("@/components/WorldMap"), {
   ssr: false,
@@ -92,15 +93,15 @@ export default function ProfilPage({
       </div>
 
       {/* KPIs */}
-      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <Stagger className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Tile label="Reisen" value={s.trips} />
         <Tile label="Länder" value={s.countries} />
         <Tile label="Reisetage" value={s.days} />
         <Tile label="Flüge" value={s.flights} />
-      </div>
+      </Stagger>
 
       {/* Highlights */}
-      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+      <Stagger className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Tile
           label="Längster Aufenthalt"
           value={s.longest ? `${s.longest.tage} T` : "–"}
@@ -121,7 +122,7 @@ export default function ProfilPage({
           value={s.firstYear ? `${s.firstYear}–${s.lastYear}` : "–"}
           sub={`${ov.continents.length} Kontinente`}
         />
-      </div>
+      </Stagger>
 
       {/* Map */}
       <section className="mb-6 rounded-2xl border border-line bg-surface p-2 shadow-sm md:p-3">

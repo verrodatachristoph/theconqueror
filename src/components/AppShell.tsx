@@ -22,6 +22,7 @@ import TripList from "@/components/TripList";
 import TripForm from "@/components/TripForm";
 import TripDetail from "@/components/TripDetail";
 import TopNav from "@/components/TopNav";
+import { Reveal } from "@/components/motion";
 
 export default function AppShell({
   trips,
@@ -127,7 +128,7 @@ export default function AppShell({
       </section>
 
       {/* List */}
-      <section>
+      <Reveal as="section">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-lg font-semibold">
             Aufenthalte <span className="text-sm font-normal text-muted">({listTrips.length})</span>
@@ -144,7 +145,7 @@ export default function AppShell({
           </button>
         </div>
         <TripList trips={listTrips} persons={persons} onOpen={openDetail} />
-      </section>
+      </Reveal>
 
       {detail && (
         <TripDetail

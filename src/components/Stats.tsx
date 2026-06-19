@@ -15,6 +15,7 @@ import {
 import type { Trip } from "@/types/database.types";
 import { yearOf, totalFlights } from "@/lib/trips";
 import StatTile from "@/components/StatTile";
+import { Stagger, Item } from "@/components/motion";
 
 const ANREISE_COLORS: Record<string, string> = {
   Auto: "var(--color-accent)",
@@ -75,7 +76,7 @@ export default function Stats({ trips }: { trips: Trip[] }) {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <Stagger className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <Kpi label="Reisen" value={m.count} />
       <Kpi label="Gesamttage" value={m.days} />
       <Kpi label="Länder besucht" value={m.countries} />
@@ -98,7 +99,7 @@ export default function Stats({ trips }: { trips: Trip[] }) {
       <Kpi label="Flüge" value={m.flights} />
 
       {/* Charts */}
-      <div className="col-span-2 rounded-2xl border border-line bg-surface p-4">
+      <Item className="col-span-2 rounded-2xl border border-line bg-surface p-4">
         <h3 className="mb-3 text-sm font-medium text-ink">Reisen pro Jahr</h3>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={m.perYearArr} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
@@ -125,9 +126,9 @@ export default function Stats({ trips }: { trips: Trip[] }) {
             <Bar dataKey="trips" name="Reisen" fill="var(--color-accent)" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      </Item>
 
-      <div className="col-span-2 rounded-2xl border border-line bg-surface p-4">
+      <Item className="col-span-2 rounded-2xl border border-line bg-surface p-4">
         <h3 className="mb-3 text-sm font-medium text-ink">Anreiseart</h3>
         <ResponsiveContainer width="100%" height={180}>
           <PieChart>
@@ -164,8 +165,8 @@ export default function Stats({ trips }: { trips: Trip[] }) {
             </span>
           ))}
         </div>
-      </div>
-    </div>
+      </Item>
+    </Stagger>
   );
 }
 

@@ -8,6 +8,7 @@ import TopNav from "@/components/TopNav";
 import PersonFilter from "@/components/PersonFilter";
 import TripDetail from "@/components/TripDetail";
 import TripForm from "@/components/TripForm";
+import { Reveal } from "@/components/motion";
 
 const ANREISE_ICON: Record<string, string> = { Auto: "🚗", Flugzeug: "✈️", Zug: "🚆" };
 
@@ -72,7 +73,7 @@ export default function TagebuchPage({
       </div>
 
       {byYear.map(([year, list]) => (
-        <section key={year} className="mb-8">
+        <Reveal as="section" key={year} className="mb-8">
           <div className="mb-3 flex items-baseline gap-3">
             <h2 className="text-2xl font-semibold tracking-tight">{year || "—"}</h2>
             <span className="text-sm text-muted">
@@ -135,7 +136,7 @@ export default function TagebuchPage({
               </li>
             ))}
           </ul>
-        </section>
+        </Reveal>
       ))}
 
       {!byYear.length && <p className="text-sm text-muted">Keine Aufenthalte für diese Auswahl.</p>}
