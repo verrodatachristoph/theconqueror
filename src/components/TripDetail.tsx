@@ -34,6 +34,14 @@ export default function TripDetail({
     fetchTripPhotos(trip.id).then(setPhotos).catch(() => {});
   }, [trip.id]);
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && lightbox === null) onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox, onClose]);
+
   const who = persons.filter((p) => trip.wer_von_uns?.includes(p.code));
   const isFlight = trip.anreise === "Flugzeug";
   const routeNodes =

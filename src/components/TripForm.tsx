@@ -10,6 +10,7 @@ import { personColor, computeTage } from "@/lib/trips";
 import { motion } from "framer-motion";
 import { compressImage } from "@/lib/image";
 import AirportInput from "@/components/AirportInput";
+import { useToast } from "@/components/toast";
 import {
   saveTrip,
   uploadPhotos,
@@ -54,10 +55,19 @@ export default function TripForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const toast = useToast();
 
   useEffect(() => {
     if (trip) fetchTripPhotos(trip.id).then(setPhotos).catch(() => {});
   }, [trip]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   const iso = toIso3(land);
   const isFlight = anreise === "Flugzeug";
@@ -99,6 +109,7 @@ export default function TripForm({
         await uploadPhotos(id, fd);
       }
       router.refresh();
+      toast(isEdit ? "Gespeichert" : "Aufenthalt angelegt");
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Speichern fehlgeschlagen.");
@@ -113,6 +124,7 @@ export default function TripForm({
     try {
       await deleteTrip(trip.id);
       router.refresh();
+      toast("Gelöscht");
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Löschen fehlgeschlagen.");

@@ -8,6 +8,7 @@ import { germanCountryNames } from "@/lib/iso";
 import { achievementAggregates, evaluateAchievements, totalFlightKm, type Home } from "@/lib/stats";
 import { addWish, removeWish } from "@/app/actions";
 import TopNav from "@/components/TopNav";
+import { useToast } from "@/components/toast";
 
 const EARTH_KM = 40075;
 const COUNTRY_NAMES = germanCountryNames();
@@ -26,6 +27,7 @@ export default function ZielePage({
   achievementDefs: AchievementDef[];
 }) {
   const router = useRouter();
+  const toast = useToast();
   const [pending, startTransition] = useTransition();
   const [land, setLand] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -46,8 +48,12 @@ export default function ZielePage({
     e.preventDefault();
     setError(null);
     const res = await addWish(land);
-    if (!res.ok) return setError(res.error ?? "Fehler.");
+    if (!res.ok) {
+      setError(res.error ?? "Fehler.");
+      return;
+    }
     setLand("");
+    toast("Zur Wunschliste hinzugefügt");
     startTransition(() => router.refresh());
   }
 
@@ -168,7 +174,7 @@ export default function ZielePage({
                   <span>{w.land}</span>
                   {seen && <span className="text-xs text-accent">✓ schon besucht</span>}
                   <button
-                    onClick={() => startTransition(async () => { await removeWish(w.iso3); router.refresh(); })}
+                    onClick={() => startTransition(async () => { await removeWish(w.iso3); toast("Entfernt"); router.refresh(); })}
                     className="text-muted hover:text-ink"
                     title="Entfernen"
                   >
