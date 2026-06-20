@@ -2,7 +2,7 @@
 
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
-import { personColor, yearOf } from "@/lib/trips";
+import { personColor, yearOf, isUpcoming } from "@/lib/trips";
 import { flagEmoji } from "@/lib/iso";
 import EmptyState from "@/components/EmptyState";
 
@@ -51,6 +51,14 @@ export default function TripList({
                   <span className="shrink-0 text-xs text-muted">
                     {flagEmoji(t.land_iso3)} {t.land}
                   </span>
+                  {isUpcoming(t) && (
+                    <span
+                      className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                      style={{ background: "#6d5bd020", color: "#6d5bd0" }}
+                    >
+                      geplant
+                    </span>
+                  )}
                   {needsAirport && (
                     <span className="shrink-0 rounded-full bg-[var(--color-arc)]/15 px-2 py-0.5 text-[10px] font-medium text-[var(--color-arc)]">
                       Abflughafen nachtragen

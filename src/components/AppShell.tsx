@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
-import { filterTrips, yearOf } from "@/lib/trips";
+import { filterTrips, yearOf, isUpcoming, daysUntil } from "@/lib/trips";
 import { flagEmoji } from "@/lib/iso";
 import PersonFilter from "@/components/PersonFilter";
 import Stats from "@/components/Stats";
@@ -72,6 +72,13 @@ export default function AppShell({
     [byPerson, focused],
   );
 
+  const nextTrip = useMemo(() => {
+    const up = byPerson
+      .filter(isUpcoming)
+      .sort((a, b) => (a.datum_start ?? "").localeCompare(b.datum_start ?? ""));
+    return up[0] ?? null;
+  }, [byPerson]);
+
   const visibleList = useMemo(() => {
     const q = query.trim().toLowerCase();
     const arr = q
@@ -114,6 +121,30 @@ export default function AppShell({
           onAll={() => setEnabled(new Set(allCodes))}
         />
       </div>
+
+      {/* Countdown to the next planned trip */}
+      {nextTrip && (
+        <div
+          className="mb-5 flex items-center gap-3 rounded-2xl border p-4"
+          style={{ borderColor: "#6d5bd055", background: "#6d5bd012" }}
+        >
+          <span className="text-2xl">🔜</span>
+          <div className="min-w-0">
+            <div className="text-[11px] font-medium uppercase tracking-wide" style={{ color: "#6d5bd0" }}>
+              Nächste Reise
+            </div>
+            <div className="truncate font-semibold text-ink">
+              {nextTrip.ort} {flagEmoji(nextTrip.land_iso3)}
+              {nextTrip.datum_start && (
+                <span className="font-normal text-muted">
+                  {" "}
+                  · in {daysUntil(nextTrip.datum_start)} Tagen
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Map hero — full-bleed on mobile, card on larger screens */}
       <section className="relative mb-6 -mx-4 border-y border-line bg-surface shadow-sm sm:mx-0 sm:rounded-2xl sm:border sm:p-3">

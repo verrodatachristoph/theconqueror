@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
-import { filterTrips, personColor, yearOf } from "@/lib/trips";
+import { filterTrips, personColor, yearOf, isUpcoming } from "@/lib/trips";
 import { flagEmoji } from "@/lib/iso";
 import TopNav from "@/components/TopNav";
 import PersonFilter from "@/components/PersonFilter";
@@ -107,6 +107,14 @@ export default function TagebuchPage({
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
                       <h3 className="truncate text-base font-semibold text-ink">{t.ort}</h3>
+                      {isUpcoming(t) && (
+                        <span
+                          className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
+                          style={{ background: "#6d5bd020", color: "#6d5bd0" }}
+                        >
+                          geplant
+                        </span>
+                      )}
                       <span className="shrink-0 text-xs text-muted">
                         {flagEmoji(t.land_iso3)} {t.land}
                       </span>

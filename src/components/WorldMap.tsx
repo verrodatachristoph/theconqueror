@@ -16,6 +16,7 @@ import {
   flightStopPoints,
   destinations,
   yearOf,
+  isUpcoming,
   type Arc,
 } from "@/lib/trips";
 
@@ -298,20 +299,25 @@ export default function WorldMap({
                 </g>
               );
             }
+            const planned = isUpcoming(d.trip);
             return (
               <circle
                 key={`dot-${i}`}
                 cx={p[0]}
                 cy={p[1]}
-                r={2.6 / k}
-                fill="var(--color-arc)"
-                stroke="var(--color-surface)"
-                strokeWidth={1 / k}
+                r={(planned ? 3.6 : 2.6) / k}
+                fill={planned ? "none" : "var(--color-arc)"}
+                stroke={planned ? "#6d5bd0" : "var(--color-surface)"}
+                strokeWidth={(planned ? 1.8 : 1) / k}
                 className="cursor-pointer"
                 onPointerMove={(e) => moveTip(e, { kind: "dest", trip: d.trip } as never)}
                 onPointerLeave={() => setHover(null)}
                 onClick={() => onSelectTrip?.(d.trip)}
-              />
+              >
+                {planned && (
+                  <animate attributeName="opacity" values="1;0.35;1" dur="2s" repeatCount="indefinite" />
+                )}
+              </circle>
             );
           })}
         </g>
@@ -326,6 +332,12 @@ export default function WorldMap({
           <span className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "#cf9a3f" }} />
             Wunsch
+          </span>
+        )}
+        {trips.some(isUpcoming) && (
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full border-2" style={{ borderColor: "#6d5bd0" }} />
+            geplant
           </span>
         )}
       </div>

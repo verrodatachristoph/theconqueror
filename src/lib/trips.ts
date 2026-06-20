@@ -105,6 +105,20 @@ export function destinations(trips: Trip[]): Destination[] {
 
 export const yearOf = (t: Trip) => (t.datum_start ? Number(t.datum_start.slice(0, 4)) : null);
 
+/** A trip whose start date is in the future is "planned". */
+export function isUpcoming(t: Trip): boolean {
+  if (!t.datum_start) return false;
+  return t.datum_start > new Date().toISOString().slice(0, 10);
+}
+
+/** Whole days from today until a date (negative if past). */
+export function daysUntil(date: string): number {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const ms = Date.parse(date) - today.getTime();
+  return Math.ceil(ms / 86_400_000);
+}
+
 /** Days are inclusive (nights + 1). */
 export function computeTage(start?: string | null, ende?: string | null): number | null {
   if (!start || !ende) return null;
