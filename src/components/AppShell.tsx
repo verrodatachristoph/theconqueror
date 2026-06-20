@@ -37,6 +37,8 @@ export default function AppShell({
   const [enabled, setEnabled] = useState<Set<string>>(() => new Set(persons.map((p) => p.code)));
   const [onlyMissingAirport, setOnlyMissingAirport] = useState(false);
   const [showArcs, setShowArcs] = useState(true);
+  const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<"date" | "days" | "land">("date");
   const [editing, setEditing] = useState<TripWithMedia | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [detail, setDetail] = useState<TripWithMedia | null>(null);
@@ -61,6 +63,17 @@ export default function AppShell({
     () => trips.filter((t) => t.anreise === "Flugzeug" && !t.abflug_iata).length,
     [trips],
   );
+  const visibleList = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const arr = q
+      ? listTrips.filter((t) => `${t.ort ?? ""} ${t.land ?? ""}`.toLowerCase().includes(q))
+      : listTrips;
+    const sorted = [...arr];
+    if (sort === "date") sorted.sort((a, b) => (b.datum_start ?? "").localeCompare(a.datum_start ?? ""));
+    else if (sort === "days") sorted.sort((a, b) => (b.tage ?? 0) - (a.tage ?? 0));
+    else sorted.sort((a, b) => (a.land ?? "").localeCompare(b.land ?? "", "de"));
+    return sorted;
+  }, [listTrips, query, sort]);
 
   const openNew = () => {
     setEditing(null);
@@ -127,10 +140,26 @@ export default function AppShell({
 
       {/* List */}
       <Reveal as="section">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-semibold">
-            Aufenthalte <span className="text-sm font-normal text-muted">({listTrips.length})</span>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <h2 className="mr-auto text-lg font-semibold">
+            Aufenthalte <span className="text-sm font-normal text-muted">({visibleList.length})</span>
           </h2>
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Suchen…"
+            className="w-36 rounded-full border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-accent sm:w-48"
+          />
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as typeof sort)}
+            className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-accent"
+            title="Sortierung"
+          >
+            <option value="date">Neueste zuerst</option>
+            <option value="days">Längste zuerst</option>
+            <option value="land">Land A–Z</option>
+          </select>
           <button
             onClick={() => setOnlyMissingAirport((v) => !v)}
             className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
@@ -139,10 +168,10 @@ export default function AppShell({
                 : "border-line text-muted hover:text-ink"
             }`}
           >
-            ✈️ Flüge ohne Abflughafen{missingCount ? ` (${missingCount})` : ""}
+            ✈️ ohne Abflughafen{missingCount ? ` (${missingCount})` : ""}
           </button>
         </div>
-        <TripList trips={listTrips} persons={persons} onOpen={openDetail} />
+        <TripList trips={visibleList} persons={persons} onOpen={openDetail} />
       </Reveal>
 
       {detail && (
