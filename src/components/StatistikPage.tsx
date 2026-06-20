@@ -12,12 +12,13 @@ import {
 } from "recharts";
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
-import { personColor, filterTrips } from "@/lib/trips";
+import { personColor, filterTrips, yearOf } from "@/lib/trips";
 import { personStats, headToHead, overviewStats, type PersonStats, type Home } from "@/lib/stats";
 import TopNav from "@/components/TopNav";
 import PersonFilter from "@/components/PersonFilter";
 import Stats from "@/components/Stats";
 import StatTile from "@/components/StatTile";
+import Wrapped from "@/components/Wrapped";
 import { Stagger } from "@/components/motion";
 
 export default function StatistikPage({
@@ -53,17 +54,49 @@ export default function StatistikPage({
   const ov = useMemo(() => overviewStats(visible, home), [visible, home]);
   const maxLandTrips = Math.max(1, ...ov.topCountries.map((c) => c.trips));
 
+  const years = useMemo(
+    () => [...new Set(visible.map(yearOf).filter((y): y is number => y != null))].sort((a, b) => b - a),
+    [visible],
+  );
+  const [recapYear, setRecapYear] = useState<"all" | number>("all");
+  const [recapOpen, setRecapOpen] = useState(false);
+  const recapTrips = useMemo(
+    () => (recapYear === "all" ? visible : visible.filter((t) => yearOf(t) === recapYear)),
+    [visible, recapYear],
+  );
+
   return (
     <main className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8 md:py-10">
       <TopNav />
 
-      <div className="mb-8">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <PersonFilter
           persons={persons}
           enabled={enabled}
           onToggle={toggle}
           onAll={() => setEnabled(new Set(allCodes))}
         />
+        <div className="flex items-center gap-2">
+          <select
+            value={recapYear}
+            onChange={(e) => setRecapYear(e.target.value === "all" ? "all" : Number(e.target.value))}
+            className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-accent"
+            title="Zeitraum für den Rückblick"
+          >
+            <option value="all">Alle Jahre</option>
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={() => setRecapOpen(true)}
+            className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform active:scale-95"
+          >
+            🎁 Rückblick
+          </button>
+        </div>
       </div>
 
       <section className="mb-10">
@@ -186,6 +219,15 @@ export default function StatistikPage({
           <CompareChart title="Länder pro Person" data={perPerson} pick={(s) => s.countries} />
         </div>
       </section>
+
+      {recapOpen && (
+        <Wrapped
+          trips={recapTrips}
+          home={home}
+          scopeLabel={recapYear === "all" ? "Alle Jahre" : String(recapYear)}
+          onClose={() => setRecapOpen(false)}
+        />
+      )}
     </main>
   );
 }
