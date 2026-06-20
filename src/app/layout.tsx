@@ -13,9 +13,25 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "The Conqueror",
-  description: "Familien-Reisekarte",
+  description: "Wo die Familie schon überall war.",
+  openGraph: {
+    title: "The Conqueror",
+    description: "Wo die Familie schon überall war.",
+    siteName: "The Conqueror",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "The Conqueror",
+    description: "Wo die Familie schon überall war.",
+  },
 };
 
 export const viewport: Viewport = {

@@ -19,5 +19,7 @@ export async function middleware(req: NextRequest) {
 // Protect everything except the login page, the public share route (/s/...),
 // Next internals and static assets.
 export const config = {
-  matcher: ["/((?!login|s/|_next/static|_next/image|favicon.ico|icon.svg|robots.txt).*)"],
+  matcher: [
+    "/((?!login|s/|opengraph-image|twitter-image|_next/static|_next/image|favicon.ico|icon.svg|robots.txt).*)",
+  ],
 };
