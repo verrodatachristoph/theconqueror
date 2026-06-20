@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Person } from "@/types/database.types";
 import type { AchievementDef } from "@/lib/data";
@@ -16,6 +16,7 @@ import {
   changePassword,
   saveAchievement,
   deleteAchievement,
+  updateSharing,
 } from "@/app/admin-actions";
 
 const METRIC_LABEL: Record<string, string> = {
@@ -52,6 +53,7 @@ export default function AdminPage({
         <PersonsSection persons={persons} onChange={refresh} />
         <SettingsSection settings={settings} onChange={refresh} />
         <PasswordSection />
+        <SharingSection token={settings.shareToken} onChange={refresh} />
         <AchievementsSection defs={achievementDefs} onChange={refresh} />
       </div>
     </main>
@@ -240,6 +242,68 @@ function SettingsSection({ settings, onChange }: { settings: PublicSettings; onC
         </button>
         {msg && <span className="text-sm text-muted">{msg}</span>}
       </div>
+    </Section>
+  );
+}
+
+function SharingSection({ token, onChange }: { token: string | null; onChange: () => void }) {
+  const [link, setLink] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    setLink(token ? `${window.location.origin}/s/${token}` : "");
+  }, [token]);
+
+  const act = async (a: "enable" | "regenerate" | "disable") => {
+    setBusy(true);
+    await updateSharing(a);
+    setBusy(false);
+    onChange();
+  };
+
+  return (
+    <Section title="Öffentlicher Teilen-Link">
+      <p className="mb-3 text-xs text-muted">
+        Eine schreibgeschützte Ansicht (Karte &amp; Statistik) ohne Passwort. Jeder mit dem Link kann sie
+        sehen — zum Deaktivieren einfach den Link zurückziehen.
+      </p>
+      {token ? (
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <input readOnly value={link} onFocus={(e) => e.currentTarget.select()} className={`${input} flex-1`} />
+            <button
+              onClick={async () => {
+                await navigator.clipboard.writeText(link);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 1500);
+              }}
+              className="rounded-lg border border-line px-3 py-2 text-sm"
+            >
+              {copied ? "Kopiert ✓" : "Kopieren"}
+            </button>
+            <a href={link} target="_blank" rel="noreferrer" className="rounded-lg border border-line px-3 py-2 text-sm">
+              Öffnen
+            </a>
+          </div>
+          <div className="flex gap-4 text-sm">
+            <button onClick={() => act("regenerate")} disabled={busy} className="text-muted hover:text-ink disabled:opacity-50">
+              Neuen Link erzeugen
+            </button>
+            <button onClick={() => act("disable")} disabled={busy} className="text-[var(--color-arc)] hover:underline disabled:opacity-50">
+              Teilen deaktivieren
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => act("enable")}
+          disabled={busy}
+          className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-surface disabled:opacity-50"
+        >
+          Teilen aktivieren
+        </button>
+      )}
     </Section>
   );
 }

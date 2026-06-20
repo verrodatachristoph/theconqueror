@@ -30,11 +30,13 @@ export default function AppShell({
   persons,
   defaultAirport,
   wishlist,
+  readOnly = false,
 }: {
   trips: TripWithMedia[];
   persons: Person[];
   defaultAirport: string | null;
   wishlist: string[];
+  readOnly?: boolean;
 }) {
   const allCodes = useMemo(() => persons.map((p) => p.code), [persons]);
   const [enabled, setEnabled] = useState<Set<string>>(() => new Set(persons.map((p) => p.code)));
@@ -104,14 +106,23 @@ export default function AppShell({
 
   return (
     <main className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8 md:py-10">
-      <TopNav>
-        <button
-          onClick={openNew}
-          className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
-        >
-          + Neuer Aufenthalt
-        </button>
-      </TopNav>
+      {readOnly ? (
+        <header className="mb-6 flex flex-wrap items-center gap-3">
+          <span className="text-lg font-semibold tracking-tight md:text-xl">The Conqueror</span>
+          <span className="rounded-full border border-line bg-surface px-2.5 py-1 text-xs text-muted">
+            geteilte Ansicht
+          </span>
+        </header>
+      ) : (
+        <TopNav>
+          <button
+            onClick={openNew}
+            className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
+          >
+            + Neuer Aufenthalt
+          </button>
+        </TopNav>
+      )}
 
       <div className="mb-5">
         <PersonFilter
@@ -274,10 +285,11 @@ export default function AppShell({
           persons={persons}
           onClose={() => setDetail(null)}
           onEdit={openEdit}
+          readOnly={readOnly}
         />
       )}
 
-      {formOpen && (
+      {formOpen && !readOnly && (
         <TripForm
           trip={editing}
           persons={persons}

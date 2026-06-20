@@ -156,6 +156,7 @@ export interface Database {
           home_label: string;
           default_airport: string | null;
           password_hash: string | null;
+          share_token: string | null;
           updated_at: string;
         };
         Insert: {
@@ -165,6 +166,7 @@ export interface Database {
           home_label?: string;
           default_airport?: string | null;
           password_hash?: string | null;
+          share_token?: string | null;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["app_settings"]["Insert"]>;

@@ -16,7 +16,8 @@ export async function middleware(req: NextRequest) {
   return NextResponse.redirect(url);
 }
 
-// Protect everything except the login page, Next internals and static assets.
+// Protect everything except the login page, the public share route (/s/...),
+// Next internals and static assets.
 export const config = {
-  matcher: ["/((?!login|_next/static|_next/image|favicon.ico|icon.svg|robots.txt).*)"],
+  matcher: ["/((?!login|s/|_next/static|_next/image|favicon.ico|icon.svg|robots.txt).*)"],
 };

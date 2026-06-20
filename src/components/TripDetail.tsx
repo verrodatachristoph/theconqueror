@@ -21,11 +21,13 @@ export default function TripDetail({
   persons,
   onClose,
   onEdit,
+  readOnly = false,
 }: {
   trip: TripWithMedia;
   persons: Person[];
   onClose: () => void;
-  onEdit: (t: TripWithMedia) => void;
+  onEdit?: (t: TripWithMedia) => void;
+  readOnly?: boolean;
 }) {
   const [photos, setPhotos] = useState<SignedPhoto[]>([]);
   const [lightbox, setLightbox] = useState<number | null>(null);
@@ -169,14 +171,16 @@ export default function TripDetail({
             </div>
           )}
 
-          <div className="flex justify-between pt-1">
+          <div className="flex items-center justify-between pt-1">
             <span className="text-xs text-muted">{yearOf(trip) ?? ""}</span>
-            <button
-              onClick={() => onEdit(trip)}
-              className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-surface transition-transform active:scale-95"
-            >
-              Bearbeiten
-            </button>
+            {!readOnly && onEdit && (
+              <button
+                onClick={() => onEdit(trip)}
+                className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-surface transition-transform active:scale-95"
+              >
+                Bearbeiten
+              </button>
+            )}
           </div>
         </div>
       </motion.div>

@@ -8,6 +8,7 @@ export type PublicSettings = {
   homeLon: number | null;
   homeLabel: string;
   defaultAirport: string | null;
+  shareToken: string | null;
 };
 
 export async function getSettings() {
@@ -23,6 +24,7 @@ export async function getPublicSettings(): Promise<PublicSettings> {
     homeLon: s?.home_lon != null ? Number(s.home_lon) : null,
     homeLabel: s?.home_label ?? "Zuhause",
     defaultAirport: s?.default_airport ?? null,
+    shareToken: s?.share_token ?? null,
   };
 }
 

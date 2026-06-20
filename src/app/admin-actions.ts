@@ -126,3 +126,20 @@ export async function deleteAchievement(id: string): Promise<Result> {
   revalidateAll();
   return { ok: true };
 }
+
+// ── Public sharing ───────────────────────────────────────────────────────────
+export async function setShareToken(token: string | null): Promise<{ token: string | null }> {
+  const supabase = createAdminClient();
+  await supabase
+    .from("app_settings")
+    .update({ share_token: token, updated_at: new Date().toISOString() })
+    .eq("id", 1);
+  revalidateAll();
+  return { token };
+}
+
+/** Enable sharing (new random token), regenerate, or disable (null). */
+export async function updateSharing(action: "enable" | "regenerate" | "disable") {
+  if (action === "disable") return setShareToken(null);
+  return setShareToken(crypto.randomUUID());
+}
