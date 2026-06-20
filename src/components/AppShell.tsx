@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
 import { filterTrips } from "@/lib/trips";
+import { flagEmoji } from "@/lib/iso";
 import PersonFilter from "@/components/PersonFilter";
 import Stats from "@/components/Stats";
 
@@ -41,6 +42,7 @@ export default function AppShell({
   const [showArcs, setShowArcs] = useState(true);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"date" | "days" | "land">("date");
+  const [focused, setFocused] = useState<string | null>(null);
   const [editing, setEditing] = useState<TripWithMedia | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [detail, setDetail] = useState<TripWithMedia | null>(null);
@@ -65,6 +67,11 @@ export default function AppShell({
     () => trips.filter((t) => t.anreise === "Flugzeug" && !t.abflug_iata).length,
     [trips],
   );
+  const focusedTrips = useMemo(
+    () => (focused ? byPerson.filter((t) => t.land_iso3 === focused) : []),
+    [byPerson, focused],
+  );
+
   const visibleList = useMemo(() => {
     const q = query.trim().toLowerCase();
     const arr = q
@@ -114,6 +121,8 @@ export default function AppShell({
           trips={byPerson}
           showArcs={showArcs}
           wishlist={wishlist}
+          focusIso={focused}
+          onSelectCountry={setFocused}
           onSelectTrip={(t) => {
             const full = trips.find((x) => x.id === t.id);
             if (full) openDetail(full);
@@ -135,6 +144,25 @@ export default function AppShell({
           Fluglinien {showArcs ? "an" : "aus"}
         </button>
       </section>
+
+      {/* Country focus panel */}
+      {focused && (
+        <Reveal as="section" className="mb-6 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold">
+              {flagEmoji(focused)} {focusedTrips[0]?.land ?? focused}{" "}
+              <span className="text-sm font-normal text-muted">({focusedTrips.length})</span>
+            </h2>
+            <button
+              onClick={() => setFocused(null)}
+              className="rounded-full border border-line px-3 py-1.5 text-sm text-muted transition-colors hover:text-ink"
+            >
+              Schließen ✕
+            </button>
+          </div>
+          <TripList trips={focusedTrips} persons={persons} onOpen={openDetail} />
+        </Reveal>
+      )}
 
       {/* Stats */}
       <section className="mb-8">

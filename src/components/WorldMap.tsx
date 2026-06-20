@@ -51,12 +51,16 @@ export default function WorldMap({
   trips,
   showArcs = true,
   wishlist,
+  focusIso,
   onSelectTrip,
+  onSelectCountry,
 }: {
   trips: MapTrip[];
   showArcs?: boolean;
   wishlist?: string[];
+  focusIso?: string | null;
   onSelectTrip?: (trip: Trip) => void;
+  onSelectCountry?: (iso3: string) => void;
 }) {
   const gRef = useRef<SVGGElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -129,15 +133,18 @@ export default function WorldMap({
     };
   }, []);
 
-  // Auto-fit: when the visible countries change (filter), zoom to their extent.
+  // Auto-fit: zoom to the focused country, else to the visible countries' extent.
   const fitTransform = useMemo(() => {
-    const visited = landFeatures.filter((f) => {
-      const iso = idToIso3(f.id);
-      return iso ? byCountry.has(iso) : false;
-    });
-    if (!visited.length) return zoomIdentity;
+    const feats = focusIso
+      ? landFeatures.filter((f) => idToIso3(f.id) === focusIso)
+      : landFeatures.filter((f) => {
+          const iso = idToIso3(f.id);
+          return iso ? byCountry.has(iso) : false;
+        });
+    if (!feats.length) return zoomIdentity;
+    const pad = focusIso ? 0.78 : 0.9;
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    for (const f of visited) {
+    for (const f of feats) {
       const b = path.bounds(f as never);
       if (!Number.isFinite(b[0][0])) continue;
       x0 = Math.min(x0, b[0][0]);
@@ -148,11 +155,11 @@ export default function WorldMap({
     if (!Number.isFinite(x0)) return zoomIdentity;
     const bw = Math.max(1, x1 - x0);
     const bh = Math.max(1, y1 - y0);
-    const scale = Math.max(1, Math.min(9, 0.9 * Math.min(W / bw, H / bh)));
+    const scale = Math.max(1, Math.min(9, pad * Math.min(W / bw, H / bh)));
     const tx = W / 2 - (scale * (x0 + x1)) / 2;
     const ty = H / 2 - (scale * (y0 + y1)) / 2;
     return zoomIdentity.translate(tx, ty).scale(scale);
-  }, [byCountry, path]);
+  }, [byCountry, path, focusIso]);
 
   useEffect(() => {
     const svg = svgRef.current;
@@ -197,7 +204,7 @@ export default function WorldMap({
           {landFeatures.map((f, i) => {
             const iso3 = idToIso3(f.id);
             const visited = iso3 ? byCountry.has(iso3) : false;
-            const hl = visited && iso3 === hoveredIso;
+            const hl = visited && (iso3 === hoveredIso || iso3 === focusIso);
             return (
               <path
                 key={i}
@@ -220,6 +227,9 @@ export default function WorldMap({
                 onPointerLeave={() => {
                   setHover(null);
                   setHoveredIso(null);
+                }}
+                onClick={() => {
+                  if (visited && iso3) onSelectCountry?.(iso3);
                 }}
               />
             );
