@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
-import { filterTrips } from "@/lib/trips";
+import { filterTrips, yearOf } from "@/lib/trips";
 import { flagEmoji } from "@/lib/iso";
 import PersonFilter from "@/components/PersonFilter";
 import Stats from "@/components/Stats";
@@ -143,11 +143,43 @@ export default function AppShell({
           />
           Fluglinien {showArcs ? "an" : "aus"}
         </button>
+
+        {/* Desktop: compact country panel inside the map */}
+        {focused && (
+          <div className="absolute left-3 top-3 z-10 hidden max-h-[70%] w-64 flex-col overflow-hidden rounded-xl border border-line bg-surface/95 shadow-lg backdrop-blur sm:flex">
+            <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
+              <span className="truncate text-sm font-semibold">
+                {flagEmoji(focused)} {focusedTrips[0]?.land ?? focused}
+                <span className="ml-1 font-normal text-muted">({focusedTrips.length})</span>
+              </span>
+              <button
+                onClick={() => setFocused(null)}
+                aria-label="Schließen"
+                className="shrink-0 text-muted hover:text-ink"
+              >
+                ✕
+              </button>
+            </div>
+            <ul className="overflow-y-auto py-1">
+              {focusedTrips.map((t) => (
+                <li key={t.id}>
+                  <button
+                    onClick={() => openDetail(t)}
+                    className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-surface-2"
+                  >
+                    <span className="truncate">{t.ort}</span>
+                    <span className="ml-auto shrink-0 text-xs text-muted">{yearOf(t) ?? ""}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </section>
 
-      {/* Country focus panel */}
+      {/* Country focus panel — mobile only (desktop uses the in-map overlay) */}
       {focused && (
-        <Reveal as="section" className="mb-6 rounded-2xl border border-line bg-surface p-4 shadow-sm">
+        <Reveal as="section" className="mb-6 rounded-2xl border border-line bg-surface p-4 shadow-sm sm:hidden">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-lg font-semibold">
               {flagEmoji(focused)} {focusedTrips[0]?.land ?? focused}{" "}
