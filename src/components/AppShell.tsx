@@ -28,10 +28,12 @@ export default function AppShell({
   trips,
   persons,
   defaultAirport,
+  wishlist,
 }: {
   trips: TripWithMedia[];
   persons: Person[];
   defaultAirport: string | null;
+  wishlist: string[];
 }) {
   const allCodes = useMemo(() => persons.map((p) => p.code), [persons]);
   const [enabled, setEnabled] = useState<Set<string>>(() => new Set(persons.map((p) => p.code)));
@@ -111,6 +113,7 @@ export default function AppShell({
         <WorldMap
           trips={byPerson}
           showArcs={showArcs}
+          wishlist={wishlist}
           onSelectTrip={(t) => {
             const full = trips.find((x) => x.id === t.id);
             if (full) openDetail(full);

@@ -50,10 +50,12 @@ type MapTrip = Trip & { cover_signed?: string | null };
 export default function WorldMap({
   trips,
   showArcs = true,
+  wishlist,
   onSelectTrip,
 }: {
   trips: MapTrip[];
   showArcs?: boolean;
+  wishlist?: string[];
   onSelectTrip?: (trip: Trip) => void;
 }) {
   const gRef = useRef<SVGGElement>(null);
@@ -85,6 +87,7 @@ export default function WorldMap({
     () => Math.max(1, ...[...byCountry.values()].map((c) => c.count)),
     [byCountry],
   );
+  const wishSet = useMemo(() => new Set(wishlist ?? []), [wishlist]);
   const arcs = useMemo(() => flightArcs(trips), [trips]);
   const stopPoints = useMemo(() => flightStopPoints(trips), [trips]);
   const dests = useMemo(() => destinations(trips), [trips]);
@@ -93,13 +96,16 @@ export default function WorldMap({
     [trips],
   );
 
-  // visited country fill: light -> deep teal by trip count
+  // visited country fill: light -> deep teal by trip count; wishlist = soft gold
   function fillFor(iso3: string | null): string {
     if (!iso3) return "var(--color-land)";
     const agg = byCountry.get(iso3);
-    if (!agg) return "var(--color-land)";
-    const t = Math.sqrt(agg.count / maxCount); // sqrt for gentler low end
-    return `color-mix(in oklab, var(--color-accent) ${Math.round(25 + t * 70)}%, var(--color-accent-soft))`;
+    if (agg) {
+      const t = Math.sqrt(agg.count / maxCount); // sqrt for gentler low end
+      return `color-mix(in oklab, var(--color-accent) ${Math.round(25 + t * 70)}%, var(--color-accent-soft))`;
+    }
+    if (wishSet.has(iso3)) return "color-mix(in oklab, #cf9a3f 42%, var(--color-land))";
+    return "var(--color-land)";
   }
 
   // d3-zoom (wheel + pinch + drag pan), constant strokes via vector-effect
@@ -300,6 +306,19 @@ export default function WorldMap({
           })}
         </g>
       </svg>
+
+      <div className="pointer-events-none absolute bottom-2 left-2 flex items-center gap-3 rounded-lg bg-surface/85 px-2.5 py-1.5 text-[11px] text-muted shadow-sm backdrop-blur">
+        <span className="flex items-center gap-1.5">
+          <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "var(--color-accent)" }} />
+          besucht
+        </span>
+        {wishSet.size > 0 && (
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "#cf9a3f" }} />
+            Wunsch
+          </span>
+        )}
+      </div>
 
       {hover && <MapTooltip hover={hover} />}
     </div>
