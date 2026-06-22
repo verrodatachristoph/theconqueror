@@ -13,7 +13,7 @@ export default function PersonFilter({
   onToggle: (code: string) => void;
   onAll: () => void;
 }) {
-  const allActive = persons.every((p) => enabled.has(p.code));
+  const noneActive = !persons.some((p) => enabled.has(p.code));
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -27,7 +27,7 @@ export default function PersonFilter({
             type="button"
             onClick={() => onToggle(p.code)}
             aria-pressed={on}
-            title={on ? `${p.name} ausblenden` : `${p.name} einblenden`}
+            title={on ? `${p.name} aus dem Filter nehmen` : `Nur Reisen, bei denen ${p.name} dabei war`}
             className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-semibold transition-all ${
               on
                 ? "border-accent bg-accent text-white shadow-sm"
@@ -49,10 +49,10 @@ export default function PersonFilter({
       <button
         type="button"
         onClick={onAll}
-        disabled={allActive}
+        disabled={noneActive}
         className="ml-1 rounded-full px-3 py-1.5 text-sm text-muted underline-offset-2 hover:text-ink hover:underline disabled:opacity-40 disabled:hover:no-underline"
       >
-        Alle zurücksetzen
+        Zurücksetzen
       </button>
     </div>
   );

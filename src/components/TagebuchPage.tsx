@@ -29,8 +29,7 @@ export default function TagebuchPage({
   persons: Person[];
   defaultAirport: string | null;
 }) {
-  const allCodes = useMemo(() => persons.map((p) => p.code), [persons]);
-  const [enabled, setEnabled] = useState<Set<string>>(() => new Set(persons.map((p) => p.code)));
+  const [enabled, setEnabled] = useState<Set<string>>(new Set());
   const [detail, setDetail] = useState<TripWithMedia | null>(null);
   const [editing, setEditing] = useState<TripWithMedia | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -70,7 +69,7 @@ export default function TagebuchPage({
           persons={persons}
           enabled={enabled}
           onToggle={toggle}
-          onAll={() => setEnabled(new Set(allCodes))}
+          onAll={() => setEnabled(new Set())}
         />
       </div>
 

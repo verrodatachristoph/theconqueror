@@ -6,15 +6,18 @@ export function personColor(persons: { code: string; farbe: string }[], code: st
 }
 
 /**
- * OR semantics: every person is enabled by default. A trip is shown if AT
- * LEAST ONE of its participants is enabled — so "only the kids" shows
- * every trip either of them was on. Trips without recorded participants
- * always show. (Disabling everyone shows only those participant-less trips.)
+ * AND semantics: a trip is shown only if EVERY enabled person was on it, so the
+ * map/stats describe trips where exactly the selected people were together.
+ * With all enabled (default) that means trips where the whole family was along;
+ * with one enabled it's simply that person's trips. An empty selection = no
+ * filter (show everything).
  */
 export function filterTrips<T extends Trip>(trips: T[], enabled: Set<string>): T[] {
+  if (enabled.size === 0) return trips;
   return trips.filter((t) => {
     const who = t.wer_von_uns ?? [];
-    return who.length === 0 || who.some((c) => enabled.has(c));
+    for (const c of enabled) if (!who.includes(c)) return false;
+    return true;
   });
 }
 

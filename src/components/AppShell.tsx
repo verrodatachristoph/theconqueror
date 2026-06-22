@@ -38,8 +38,7 @@ export default function AppShell({
   wishlist: string[];
   readOnly?: boolean;
 }) {
-  const allCodes = useMemo(() => persons.map((p) => p.code), [persons]);
-  const [enabled, setEnabled] = useState<Set<string>>(() => new Set(persons.map((p) => p.code)));
+  const [enabled, setEnabled] = useState<Set<string>>(new Set());
   const [onlyMissingAirport, setOnlyMissingAirport] = useState(false);
   const [showArcs, setShowArcs] = useState(true);
   const [query, setQuery] = useState("");
@@ -129,7 +128,7 @@ export default function AppShell({
           persons={persons}
           enabled={enabled}
           onToggle={toggle}
-          onAll={() => setEnabled(new Set(allCodes))}
+          onAll={() => setEnabled(new Set())}
         />
       </div>
 

@@ -39,8 +39,7 @@ export default function StatistikPage({
   persons: Person[];
   home: Home;
 }) {
-  const allCodes = useMemo(() => persons.map((p) => p.code), [persons]);
-  const [enabled, setEnabled] = useState<Set<string>>(() => new Set(persons.map((p) => p.code)));
+  const [enabled, setEnabled] = useState<Set<string>>(new Set());
   const [aCode, setACode] = useState(persons[0]?.code ?? "");
   const [bCode, setBCode] = useState(persons[1]?.code ?? persons[0]?.code ?? "");
 
@@ -84,7 +83,7 @@ export default function StatistikPage({
           persons={persons}
           enabled={enabled}
           onToggle={toggle}
-          onAll={() => setEnabled(new Set(allCodes))}
+          onAll={() => setEnabled(new Set())}
         />
         <div className="flex items-center gap-2">
           <select
