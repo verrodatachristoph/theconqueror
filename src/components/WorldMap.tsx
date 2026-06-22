@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { geoEqualEarth, geoPath, geoInterpolate } from "d3-geo";
+import { geoEqualEarth, geoPath, geoInterpolate, geoGraticule10 } from "d3-geo";
 import { select } from "d3-selection";
 import { zoom as d3zoom, zoomIdentity, type ZoomBehavior } from "d3-zoom";
 import "d3-transition"; // augments selection.transition() for smooth zoom
@@ -77,6 +77,7 @@ export default function WorldMap({
   );
   const path = useMemo(() => geoPath(projection), [projection]);
 
+  const graticule = useMemo(() => path(geoGraticule10() as never), [path]);
   const byCountry = useMemo(() => aggregateByCountry(trips), [trips]);
   const tripsByCountry = useMemo(() => {
     const m = new Map<string, Trip[]>();
@@ -196,12 +197,35 @@ export default function WorldMap({
           <clipPath id="photo-dot-clip" clipPathUnits="userSpaceOnUse">
             <circle cx={0} cy={0} r={10} />
           </clipPath>
+          <radialGradient id="ocean" cx="50%" cy="40%" r="78%">
+            <stop offset="0%" stopColor="#eef4f5" />
+            <stop offset="100%" stopColor="#dfe9eb" />
+          </radialGradient>
+          <filter id="land-shadow" x="-4%" y="-4%" width="108%" height="108%">
+            <feDropShadow dx="0" dy="0.8" stdDeviation="1" floodColor="#1b3a3f" floodOpacity="0.18" />
+          </filter>
+          <filter id="arc-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="1.1" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
         <g ref={gRef}>
-          {/* sphere outline */}
-          <path d={path({ type: "Sphere" } as never) ?? undefined} fill="var(--color-ocean)" />
+          {/* ocean + graticule */}
+          <path d={path({ type: "Sphere" } as never) ?? undefined} fill="url(#ocean)" />
+          <path
+            d={graticule ?? undefined}
+            fill="none"
+            stroke="#9fb4b7"
+            strokeWidth={0.4}
+            strokeOpacity={0.35}
+            vectorEffect="non-scaling-stroke"
+          />
 
           {/* countries */}
+          <g filter="url(#land-shadow)">
           {landFeatures.map((f, i) => {
             const iso3 = idToIso3(f.id);
             const visited = iso3 ? byCountry.has(iso3) : false;
@@ -235,21 +259,26 @@ export default function WorldMap({
               />
             );
           })}
+          </g>
 
           {/* flight arcs */}
-          {showArcs && arcs.map((a, i) => (
-            <path
-              key={`arc-${i}`}
-              d={arcPath(a) ?? undefined}
-              fill="none"
-              stroke="var(--color-arc)"
-              strokeWidth={1.2}
-              strokeOpacity={0.7}
-              strokeLinecap="round"
-              vectorEffect="non-scaling-stroke"
-              pointerEvents="none"
-            />
-          ))}
+          {showArcs && (
+            <g filter="url(#arc-glow)">
+              {arcs.map((a, i) => (
+                <path
+                  key={`arc-${i}`}
+                  d={arcPath(a) ?? undefined}
+                  fill="none"
+                  stroke="var(--color-arc)"
+                  strokeWidth={1.2}
+                  strokeOpacity={0.75}
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                  pointerEvents="none"
+                />
+              ))}
+            </g>
+          )}
 
           {/* flight stop waypoints */}
           {showArcs &&
