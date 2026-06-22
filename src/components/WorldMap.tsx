@@ -352,7 +352,7 @@ export default function WorldMap({
         </g>
       </svg>
 
-      <div className="pointer-events-none absolute bottom-2 left-2 flex items-center gap-3 rounded-lg bg-surface/85 px-2.5 py-1.5 text-[11px] text-muted shadow-sm backdrop-blur">
+      <div className="pointer-events-none absolute bottom-5 left-5 flex items-center gap-3 rounded-xl bg-surface/85 px-3 py-1.5 text-[11px] text-muted shadow-sm backdrop-blur">
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "var(--color-accent)" }} />
           besucht

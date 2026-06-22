@@ -173,7 +173,7 @@ export default function AppShell({
         <button
           onClick={() => setShowArcs((v) => !v)}
           aria-pressed={showArcs}
-          className={`absolute right-3 top-3 z-10 flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm shadow-sm backdrop-blur transition-colors ${
+          className={`absolute right-5 top-5 z-10 flex items-center gap-2 rounded-xl border px-3 py-1.5 text-sm shadow-sm backdrop-blur transition-colors ${
             showArcs
               ? "border-[var(--color-arc)] bg-[var(--color-arc)]/15 text-[var(--color-arc)]"
               : "border-line bg-surface/90 text-muted hover:text-ink"
@@ -188,7 +188,7 @@ export default function AppShell({
 
         {/* Desktop: compact country panel inside the map */}
         {focused && (
-          <div className="absolute left-3 top-3 z-10 hidden max-h-[70%] w-64 flex-col overflow-hidden rounded-xl border border-line bg-surface/95 shadow-lg backdrop-blur sm:flex">
+          <div className="absolute left-5 top-5 z-10 hidden max-h-[70%] w-64 flex-col overflow-hidden rounded-xl border border-line bg-surface/95 shadow-lg backdrop-blur sm:flex">
             <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
               <span className="truncate text-sm font-semibold">
                 {flagEmoji(focused)} {focusedTrips[0]?.land ?? focused}
