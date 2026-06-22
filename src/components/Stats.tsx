@@ -83,7 +83,7 @@ export default function Stats({ trips }: { trips: Trip[] }) {
       <Kpi label="Länder besucht" value={m.countries} />
       <Kpi label="Länder / Jahr" value={m.perYearAvg.toFixed(1)} />
       <Kpi
-        label="Längster Aufenthalt"
+        label="Längster Aufenthalt am Stück"
         value={m.longest ? `${m.longest.tage} T` : "–"}
         sub={m.longest?.ort ?? undefined}
       />

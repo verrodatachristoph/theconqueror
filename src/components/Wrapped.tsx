@@ -54,7 +54,7 @@ function buildCards(trips: Trip[], home: Home, scopeLabel: string): Card[] {
     {
       emoji: "🏖️",
       big: longest ? `${longest.tage} Tage` : "–",
-      label: "Längster Aufenthalt",
+      label: "Längster Aufenthalt am Stück",
       sub: longest?.ort ?? undefined,
     },
     {

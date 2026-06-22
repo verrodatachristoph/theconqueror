@@ -281,7 +281,7 @@ export default function StatistikPage({
           <Row label="Länder" a={h2h.a.countries} b={h2h.b.countries} />
           <Row label="Tage gesamt" a={h2h.a.days} b={h2h.b.days} />
           <Row label="Flüge" a={h2h.a.flights} b={h2h.b.flights} />
-          <Row label="Längster Aufenthalt" a={h2h.a.longest?.tage ?? 0} b={h2h.b.longest?.tage ?? 0} unit=" T" />
+          <Row label="Längster Aufenthalt am Stück" a={h2h.a.longest?.tage ?? 0} b={h2h.b.longest?.tage ?? 0} unit=" T" />
           <Row label="Erste Reise" a={h2h.a.firstYear ?? 0} b={h2h.b.firstYear ?? 0} compare={false} />
           <Row label="Letzte Reise" a={h2h.a.lastYear ?? 0} b={h2h.b.lastYear ?? 0} compare={false} />
           <TextRow

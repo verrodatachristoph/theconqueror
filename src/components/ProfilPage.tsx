@@ -84,7 +84,7 @@ export default function ProfilPage({
       {/* Highlights */}
       <Stagger className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Tile
-          label="Längster Aufenthalt"
+          label="Längster Aufenthalt am Stück"
           value={s.longest ? `${s.longest.tage} T` : "–"}
           sub={s.longest?.ort ?? undefined}
         />

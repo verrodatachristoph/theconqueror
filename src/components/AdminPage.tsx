@@ -24,7 +24,7 @@ const METRIC_LABEL: Record<string, string> = {
   countries: "Länder (unique)",
   continents: "Kontinente",
   flights: "Flüge",
-  maxDays: "Längster Aufenthalt (Tage)",
+  maxDays: "Längster Aufenthalt am Stück (Tage)",
   maxKm: "Weiteste Distanz (km)",
   familyTrips: "Reisen mit allen",
   years: "Verschiedene Jahre",
