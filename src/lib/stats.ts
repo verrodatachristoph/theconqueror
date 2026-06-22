@@ -158,6 +158,72 @@ export function overviewStats(trips: Trip[], home: Home): Overview {
   };
 }
 
+export type DeepStats = {
+  topDaysCountries: { land: string; days: number; trips: number }[];
+  topDaysPlaces: { ort: string; days: number; trips: number }[];
+  topPlaces: { ort: string; trips: number; days: number }[];
+  byContinent: { name: string; value: number }[];
+  growth: { year: number; total: number; neu: number }[];
+  anreiseByYear: { year: number; Auto: number; Flugzeug: number; Zug: number }[];
+  coverage: number;
+};
+
+/** Richer analytics for the statistics page. */
+export function deepStats(trips: Trip[]): DeepStats {
+  const land = new Map<string, { land: string; days: number; trips: number }>();
+  const ort = new Map<string, { ort: string; days: number; trips: number }>();
+  const cont = new Map<string, number>();
+  const firstYear = new Map<string, number>();
+  const byYear = new Map<number, { year: number; Auto: number; Flugzeug: number; Zug: number }>();
+
+  for (const t of trips) {
+    const days = t.tage ?? 0;
+    const y = yearOf(t);
+    if (t.land) {
+      const e = land.get(t.land) ?? { land: t.land, days: 0, trips: 0 };
+      e.days += days;
+      e.trips += 1;
+      land.set(t.land, e);
+    }
+    if (t.ort) {
+      const e = ort.get(t.ort) ?? { ort: t.ort, days: 0, trips: 0 };
+      e.days += days;
+      e.trips += 1;
+      ort.set(t.ort, e);
+    }
+    if (t.land_iso3) {
+      const c = CONTINENT[t.land_iso3];
+      if (c) cont.set(c, (cont.get(c) ?? 0) + 1);
+      if (y != null) firstYear.set(t.land_iso3, Math.min(firstYear.get(t.land_iso3) ?? y, y));
+    }
+    if (y != null) {
+      const e = byYear.get(y) ?? { year: y, Auto: 0, Flugzeug: 0, Zug: 0 };
+      if (t.anreise === "Auto" || t.anreise === "Flugzeug" || t.anreise === "Zug") e[t.anreise] += 1;
+      byYear.set(y, e);
+    }
+  }
+
+  const newByYear = new Map<number, number>();
+  for (const y of firstYear.values()) newByYear.set(y, (newByYear.get(y) ?? 0) + 1);
+  const years = [...new Set(trips.map(yearOf).filter((y): y is number => y != null))].sort((a, b) => a - b);
+  let cum = 0;
+  const growth = years.map((year) => {
+    const neu = newByYear.get(year) ?? 0;
+    cum += neu;
+    return { year, total: cum, neu };
+  });
+
+  return {
+    topDaysCountries: [...land.values()].sort((a, b) => b.days - a.days).slice(0, 5),
+    topDaysPlaces: [...ort.values()].sort((a, b) => b.days - a.days).slice(0, 5),
+    topPlaces: [...ort.values()].sort((a, b) => b.trips - a.trips).slice(0, 5),
+    byContinent: [...cont.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value),
+    growth,
+    anreiseByYear: [...byYear.values()].sort((a, b) => a.year - b.year),
+    coverage: new Set(trips.map((t) => t.land_iso3).filter(Boolean)).size,
+  };
+}
+
 /** Total flown distance (great-circle) summed over every leg of every flight. */
 export function totalFlightKm(trips: Trip[]): number {
   let km = 0;

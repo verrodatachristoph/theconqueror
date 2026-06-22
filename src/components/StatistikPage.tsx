@@ -5,6 +5,8 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -13,7 +15,14 @@ import {
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
 import { personColor, filterTrips, yearOf } from "@/lib/trips";
-import { personStats, headToHead, overviewStats, type PersonStats, type Home } from "@/lib/stats";
+import {
+  personStats,
+  headToHead,
+  overviewStats,
+  deepStats,
+  type PersonStats,
+  type Home,
+} from "@/lib/stats";
 import TopNav from "@/components/TopNav";
 import PersonFilter from "@/components/PersonFilter";
 import Stats from "@/components/Stats";
@@ -52,6 +61,7 @@ export default function StatistikPage({
     [visible, persons],
   );
   const ov = useMemo(() => overviewStats(visible, home), [visible, home]);
+  const ds = useMemo(() => deepStats(visible), [visible]);
   const maxLandTrips = Math.max(1, ...ov.topCountries.map((c) => c.trips));
 
   const years = useMemo(
@@ -126,6 +136,16 @@ export default function StatistikPage({
             value={ov.farthest ? ov.farthest.ort : "–"}
             sub={ov.farthest ? `${ov.farthest.km.toLocaleString("de")} km ab ${ov.homeLabel}` : undefined}
           />
+          <HiTile
+            label="Meiste Tage (Land)"
+            value={ds.topDaysCountries[0]?.land ?? "–"}
+            sub={ds.topDaysCountries[0] ? `${ds.topDaysCountries[0].days} Tage gesamt` : undefined}
+          />
+          <HiTile
+            label="Meiste Tage (Ort)"
+            value={ds.topDaysPlaces[0]?.ort ?? "–"}
+            sub={ds.topDaysPlaces[0] ? `${ds.topDaysPlaces[0].days} Tage gesamt` : undefined}
+          />
         </Stagger>
       </section>
 
@@ -165,6 +185,76 @@ export default function StatistikPage({
               </li>
             ))}
           </ul>
+        </div>
+      </section>
+
+      {/* Mehr Auswertungen */}
+      <section className="mb-10">
+        <h2 className="mb-4 text-lg font-semibold">Mehr Auswertungen</h2>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="rounded-2xl border border-line bg-surface p-4 lg:col-span-2">
+            <h3 className="mb-3 text-sm font-medium text-ink">Länder über die Zeit</h3>
+            <ResponsiveContainer width="100%" height={210}>
+              <AreaChart data={ds.growth} margin={{ top: 4, right: 8, bottom: 0, left: -20 }}>
+                <defs>
+                  <linearGradient id="growthFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="var(--color-accent)" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="var(--color-accent)" stopOpacity={0.04} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="year" tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
+                <Tooltip
+                  cursor={{ stroke: "var(--color-line)" }}
+                  contentStyle={{ borderRadius: 12, border: "1px solid var(--color-line)", fontSize: 12 }}
+                />
+                <Area type="monotone" dataKey="total" name="Länder gesamt" stroke="var(--color-accent)" strokeWidth={2.5} fill="url(#growthFill)" />
+              </AreaChart>
+            </ResponsiveContainer>
+            <p className="mt-1 text-xs text-muted">Kumulierte Anzahl besuchter Länder bis zum jeweiligen Jahr.</p>
+          </div>
+
+          <div className="rounded-2xl border border-line bg-surface p-4">
+            <h3 className="mb-3 text-sm font-medium text-ink">Anreiseart über die Jahre</h3>
+            <ResponsiveContainer width="100%" height={190}>
+              <BarChart data={ds.anreiseByYear} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                <XAxis dataKey="year" tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
+                <Tooltip cursor={{ fill: "var(--color-surface-2)" }} contentStyle={{ borderRadius: 12, border: "1px solid var(--color-line)", fontSize: 12 }} />
+                <Bar dataKey="Auto" stackId="a" fill="var(--color-accent)" />
+                <Bar dataKey="Flugzeug" stackId="a" fill="var(--color-arc)" />
+                <Bar dataKey="Zug" stackId="a" fill="#7d8c54" />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-2 flex justify-center gap-4 text-xs text-muted">
+              <Dot c="var(--color-accent)" label="Auto" />
+              <Dot c="var(--color-arc)" label="Flugzeug" />
+              <Dot c="#7d8c54" label="Zug" />
+            </div>
+          </div>
+
+          <Card title="Kontinente">
+            <RankList rows={ds.byContinent.map((c) => ({ label: c.name, value: c.value, right: `${c.value} Reisen` }))} />
+          </Card>
+
+          <Card title="Top-Orte">
+            <RankList rows={ds.topPlaces.map((p) => ({ label: p.ort, value: p.trips, right: `${p.trips} Reisen · ${p.days} T` }))} />
+          </Card>
+
+          <Card title="Meiste Tage – Länder">
+            <RankList rows={ds.topDaysCountries.map((c) => ({ label: c.land, value: c.days, right: `${c.days} Tage` }))} />
+          </Card>
+
+          <div className="flex flex-col justify-center rounded-2xl border border-line bg-surface p-4">
+            <h3 className="mb-2 text-sm font-medium text-ink">Weltabdeckung</h3>
+            <div className="text-3xl font-semibold text-ink">
+              {ds.coverage} <span className="text-lg text-muted">/ 195</span>
+            </div>
+            <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-surface-2">
+              <div className="h-full rounded-full bg-accent" style={{ width: `${Math.min(100, (ds.coverage / 195) * 100)}%` }} />
+            </div>
+            <p className="mt-1 text-xs text-muted">{Math.round((ds.coverage / 195) * 100)} % aller Länder weltweit.</p>
+          </div>
         </div>
       </section>
 
@@ -234,6 +324,45 @@ export default function StatistikPage({
 
 function HiTile({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return <StatTile label={label} value={value} sub={sub} />;
+}
+
+function Card({ title, children, className }: { title: string; children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-2xl border border-line bg-surface p-4 ${className ?? ""}`}>
+      <h3 className="mb-3 text-sm font-medium text-ink">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function Dot({ c, label }: { c: string; label: string }) {
+  return (
+    <span className="flex items-center gap-1.5">
+      <span className="h-2.5 w-2.5 rounded-full" style={{ background: c }} />
+      {label}
+    </span>
+  );
+}
+
+function RankList({ rows }: { rows: { label: string; value: number; right: string }[] }) {
+  if (!rows.length) return <p className="text-sm text-muted">Keine Daten.</p>;
+  const max = Math.max(1, ...rows.map((r) => r.value));
+  return (
+    <ul className="space-y-2.5">
+      {rows.map((r, i) => (
+        <li key={i} className="flex items-center gap-3">
+          <span className="w-4 text-sm font-semibold tabular-nums text-muted">{i + 1}</span>
+          <span className="w-24 shrink-0 truncate text-sm text-ink" title={r.label}>
+            {r.label}
+          </span>
+          <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2">
+            <span className="block h-full rounded-full bg-accent" style={{ width: `${(r.value / max) * 100}%` }} />
+          </span>
+          <span className="w-28 shrink-0 text-right text-xs text-muted">{r.right}</span>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 function PersonSelect({
