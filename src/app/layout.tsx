@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "The Conqueror",
   description: "Wo die Familie schon überall war.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "The Conqueror", statusBarStyle: "default" },
   openGraph: {
     title: "The Conqueror",
     description: "Wo die Familie schon überall war.",
