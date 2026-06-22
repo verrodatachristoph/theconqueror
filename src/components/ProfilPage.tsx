@@ -50,9 +50,20 @@ export default function ProfilPage({
       <TopNav />
 
       {/* Person submenu */}
-      <div className="mb-6 flex items-center gap-2">
-        <span className="text-xs font-medium uppercase tracking-wide text-muted">Profil von</span>
-        <PersonMenu persons={persons} current={person} />
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-muted">Profil von</span>
+          <PersonMenu persons={persons} current={person} />
+        </div>
+        <button
+          onClick={() => {
+            setEditing(null);
+            setFormOpen(true);
+          }}
+          className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
+        >
+          + Reise hinzufügen
+        </button>
       </div>
 
       {/* Hero */}
