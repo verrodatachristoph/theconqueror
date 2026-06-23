@@ -11,19 +11,25 @@ import Stats from "@/components/Stats";
 
 // The d3 map is heavy and interactive — render it client-only to avoid
 // floating-point projection mismatches between server and client.
+function MapLoading() {
+  const t = useT();
+  return (
+    <div className="grid aspect-[980/500] w-full place-items-center rounded-xl bg-ocean text-sm text-muted">
+      {t("common.mapLoading")}
+    </div>
+  );
+}
+
 const WorldMap = dynamic(() => import("@/components/WorldMap"), {
   ssr: false,
-  loading: () => (
-    <div className="grid aspect-[980/500] w-full place-items-center rounded-xl bg-ocean text-sm text-muted">
-      Karte lädt…
-    </div>
-  ),
+  loading: () => <MapLoading />,
 });
 import TripList from "@/components/TripList";
 import TripForm from "@/components/TripForm";
 import TripDetail from "@/components/TripDetail";
 import TopNav from "@/components/TopNav";
 import { Reveal } from "@/components/motion";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 export default function AppShell({
   trips,
@@ -47,6 +53,7 @@ export default function AppShell({
   const [editing, setEditing] = useState<TripWithMedia | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [detail, setDetail] = useState<TripWithMedia | null>(null);
+  const tr = useT();
 
   const toggle = (code: string) =>
     setEnabled((prev) => {
@@ -109,7 +116,7 @@ export default function AppShell({
         <header className="mb-6 flex flex-wrap items-center gap-3">
           <span className="text-lg font-semibold tracking-tight md:text-xl">The Conqueror</span>
           <span className="rounded-full border border-line bg-surface px-2.5 py-1 text-xs text-muted">
-            geteilte Ansicht
+            {tr("home.sharedView")}
           </span>
         </header>
       ) : (
@@ -118,7 +125,7 @@ export default function AppShell({
             onClick={openNew}
             className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
           >
-            + Neuer Aufenthalt
+            {tr("home.newStay")}
           </button>
         </TopNav>
       )}
@@ -141,14 +148,14 @@ export default function AppShell({
           <span className="text-2xl">🔜</span>
           <div className="min-w-0">
             <div className="text-[11px] font-medium uppercase tracking-wide" style={{ color: "#6d5bd0" }}>
-              Nächste Reise
+              {tr("home.nextTrip")}
             </div>
             <div className="truncate font-semibold text-ink">
               {nextTrip.place} {flagEmoji(nextTrip.country_iso3)}
               {nextTrip.start_date && (
                 <span className="font-normal text-muted">
                   {" "}
-                  · in {daysUntil(nextTrip.start_date)} Tagen
+                  · {tr("home.inDays", { n: daysUntil(nextTrip.start_date) })}
                 </span>
               )}
             </div>
@@ -182,7 +189,7 @@ export default function AppShell({
             className="h-2 w-4 rounded-full"
             style={{ background: showArcs ? "var(--color-arc)" : "var(--color-line)" }}
           />
-          Fluglinien {showArcs ? "an" : "aus"}
+          {tr("home.flightLines")} {showArcs ? tr("home.on") : tr("home.off")}
         </button>
 
         {/* Desktop: compact country panel inside the map */}
@@ -195,7 +202,7 @@ export default function AppShell({
               </span>
               <button
                 onClick={() => setFocused(null)}
-                aria-label="Schließen"
+                aria-label={tr("common.close")}
                 className="shrink-0 text-muted hover:text-ink"
               >
                 ✕
@@ -230,7 +237,7 @@ export default function AppShell({
               onClick={() => setFocused(null)}
               className="rounded-full border border-line px-3 py-1.5 text-sm text-muted transition-colors hover:text-ink"
             >
-              Schließen ✕
+              {tr("common.close")} ✕
             </button>
           </div>
           <TripList trips={focusedTrips} persons={persons} onOpen={openDetail} />
@@ -246,23 +253,23 @@ export default function AppShell({
       <Reveal as="section">
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <h2 className="mr-auto text-lg font-semibold">
-            Aufenthalte <span className="text-sm font-normal text-muted">({visibleList.length})</span>
+            {tr("home.stays")} <span className="text-sm font-normal text-muted">({visibleList.length})</span>
           </h2>
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Suchen…"
+            placeholder={tr("home.searchPlaceholder")}
             className="w-36 rounded-full border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-accent sm:w-48"
           />
           <select
             value={sort}
             onChange={(e) => setSort(e.target.value as typeof sort)}
             className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-accent"
-            title="Sortierung"
+            title={tr("home.sortTitle")}
           >
-            <option value="date">Neueste zuerst</option>
-            <option value="days">Längste zuerst</option>
-            <option value="country">Land A–Z</option>
+            <option value="date">{tr("home.sortNewest")}</option>
+            <option value="days">{tr("home.sortLongest")}</option>
+            <option value="country">{tr("home.sortCountry")}</option>
           </select>
           <button
             onClick={() => setOnlyMissingAirport((v) => !v)}
@@ -272,7 +279,7 @@ export default function AppShell({
                 : "border-line text-muted hover:text-ink"
             }`}
           >
-            ✈️ ohne Abflughafen{missingCount ? ` (${missingCount})` : ""}
+            ✈️ {tr("home.withoutAirport")}{missingCount ? ` (${missingCount})` : ""}
           </button>
         </div>
         <TripList trips={visibleList} persons={persons} onOpen={openDetail} />

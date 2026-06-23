@@ -3,8 +3,10 @@
 import { useActionState } from "react";
 import { motion } from "framer-motion";
 import { login, type LoginState } from "@/app/auth-actions";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 export default function LoginPage() {
+  const t = useT();
   const [state, formAction, pending] = useActionState<LoginState, FormData>(login, {});
 
   return (
@@ -26,10 +28,10 @@ export default function LoginPage() {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src="/theConqueror_logo_dark.png" alt="The Conqueror" className="mx-auto w-48" />
-        <p className="mt-1 text-center text-sm text-muted">Wo die Familie schon überall war.</p>
+        <p className="mt-1 text-center text-sm text-muted">{t("login.tagline")}</p>
 
         <label className="mt-6 block">
-          <span className="text-xs font-medium text-muted">Familien-Passwort</span>
+          <span className="text-xs font-medium text-muted">{t("login.passwordLabel")}</span>
           <input
             type="password"
             name="password"
@@ -46,7 +48,7 @@ export default function LoginPage() {
           disabled={pending}
           className="mt-5 w-full rounded-full bg-ink py-2.5 text-sm font-medium text-surface transition-transform active:scale-[0.98] disabled:opacity-50"
         >
-          {pending ? "Anmelden…" : "Anmelden"}
+          {pending ? t("login.submitting") : t("login.submit")}
         </button>
       </motion.form>
     </main>

@@ -13,15 +13,21 @@ import TripDetail from "@/components/TripDetail";
 import TripForm from "@/components/TripForm";
 import StatTile from "@/components/StatTile";
 import { Stagger } from "@/components/motion";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 const WorldMap = dynamic(() => import("@/components/WorldMap"), {
   ssr: false,
   loading: () => (
     <div className="grid aspect-[980/500] w-full place-items-center rounded-xl bg-ocean text-sm text-muted">
-      Karte lädt…
+      <MapLoading />
     </div>
   ),
 });
+
+function MapLoading() {
+  const t = useT();
+  return <>{t("profile.mapLoading")}</>;
+}
 
 export default function ProfilePage({
   person,
@@ -36,6 +42,7 @@ export default function ProfilePage({
   home: Home;
   defaultAirport: string | null;
 }) {
+  const t = useT();
   const [detail, setDetail] = useState<TripWithMedia | null>(null);
   const [editing, setEditing] = useState<TripWithMedia | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -52,7 +59,7 @@ export default function ProfilePage({
       {/* Person submenu */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium uppercase tracking-wide text-muted">Profil von</span>
+          <span className="text-xs font-medium uppercase tracking-wide text-muted">{t("profile.profileOf")}</span>
           <PersonMenu persons={persons} current={person} />
         </div>
         <button
@@ -62,7 +69,7 @@ export default function ProfilePage({
           }}
           className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
         >
-          + Reise hinzufügen
+          {t("form.addTrip")}
         </button>
       </div>
 
@@ -77,42 +84,42 @@ export default function ProfilePage({
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">{person.name}</h1>
           <p className="text-sm text-muted">
-            war auf <b className="text-ink">{s.trips}</b> Reisen in{" "}
-            <b className="text-ink">{s.countries}</b> Ländern ·{" "}
-            <b className="text-ink">{s.days}</b> Tage unterwegs
+            {t("profile.heroOn")} <b className="text-ink">{s.trips}</b> {t("common.trips")}{" "}
+            {t("profile.heroIn")} <b className="text-ink">{s.countries}</b> {t("profile.heroCountries")} ·{" "}
+            <b className="text-ink">{s.days}</b> {t("profile.heroDaysAway")}
           </p>
         </div>
       </div>
 
       {/* KPIs */}
       <Stagger className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Tile label="Reisen" value={s.trips} />
-        <Tile label="Länder" value={s.countries} />
-        <Tile label="Reisetage" value={s.days} />
-        <Tile label="Flüge" value={s.flights} />
+        <Tile label={t("common.trips")} value={s.trips} />
+        <Tile label={t("profile.countries")} value={s.countries} />
+        <Tile label={t("profile.travelDays")} value={s.days} />
+        <Tile label={t("profile.flights")} value={s.flights} />
       </Stagger>
 
       {/* Highlights */}
       <Stagger className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Tile
-          label="Längster Aufenthalt am Stück"
-          value={s.longest ? `${s.longest.days} T` : "–"}
+          label={t("profile.longestStay")}
+          value={s.longest ? `${s.longest.days} ${t("common.daysShort")}` : "–"}
           sub={s.longest?.place ?? undefined}
         />
         <Tile
-          label="Weitester Ort"
+          label={t("profile.farthestPlace")}
           value={ov.farthest ? ov.farthest.place : "–"}
           sub={ov.farthest ? `${ov.farthest.km.toLocaleString("de")} km` : undefined}
         />
         <Tile
-          label="Meistbesuchtes Land"
+          label={t("profile.mostVisitedCountry")}
           value={s.topCountry ? s.topCountry[0] : "–"}
           sub={s.topCountry ? `${s.topCountry[1]}×` : undefined}
         />
         <Tile
-          label="Zeitraum"
+          label={t("profile.period")}
           value={s.firstYear ? `${s.firstYear}–${s.lastYear}` : "–"}
-          sub={`${ov.continents.length} Kontinente`}
+          sub={t("profile.continents", { n: ov.continents.length })}
         />
       </Stagger>
 
@@ -130,7 +137,7 @@ export default function ProfilePage({
       {/* Trips */}
       <section>
         <h2 className="mb-3 text-lg font-semibold">
-          Reisen <span className="text-sm font-normal text-muted">({mine.length})</span>
+          {t("common.trips")} <span className="text-sm font-normal text-muted">({mine.length})</span>
         </h2>
         <TripList trips={mine} persons={persons} onOpen={setDetail} />
       </section>
@@ -164,6 +171,7 @@ function Tile({ label, value, sub }: { label: string; value: string | number; su
 }
 
 function PersonMenu({ persons, current }: { persons: Person[]; current: Person }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -188,7 +196,7 @@ function PersonMenu({ persons, current }: { persons: Person[]; current: Person }
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        title="Andere Person wählen"
+        title={t("profile.choosePerson")}
         className="flex items-center gap-2 rounded-full border border-line bg-surface py-1.5 pl-2 pr-1 text-sm font-medium shadow-sm transition-colors hover:border-ink/30"
       >
         {dot(current)}
@@ -202,7 +210,7 @@ function PersonMenu({ persons, current }: { persons: Person[]; current: Person }
       {open && (
         <div className="absolute left-0 z-20 mt-1 min-w-[13rem] rounded-xl border border-line bg-surface p-1 shadow-lg">
           <div className="px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-wide text-muted">
-            Person wählen
+            {t("profile.choosePerson")}
           </div>
           {persons.map((p) => (
             <Link

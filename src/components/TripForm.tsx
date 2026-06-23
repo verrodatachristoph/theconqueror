@@ -6,11 +6,12 @@ import type { Person, TravelMode } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
 import type { SignedPhoto } from "@/lib/data";
 import { toIso3, germanCountryNames } from "@/lib/iso";
-import { personColor, computeDays, TRAVEL_MODES, TRAVEL_MODE_LABEL } from "@/lib/trips";
+import { personColor, computeDays, TRAVEL_MODES } from "@/lib/trips";
 import { motion } from "framer-motion";
 import { compressImage } from "@/lib/image";
 import AirportInput from "@/components/AirportInput";
 import { useToast } from "@/components/toast";
+import { useT } from "@/components/i18n/LanguageProvider";
 import {
   saveTrip,
   uploadPhotos,
@@ -35,6 +36,7 @@ export default function TripForm({
   onClose: () => void;
 }) {
   const router = useRouter();
+  const t = useT();
   const isEdit = !!trip;
 
   const [place, setPlace] = useState(trip?.place ?? "");
@@ -82,9 +84,9 @@ export default function TripForm({
 
   async function handleSave() {
     setError(null);
-    if (!place.trim()) return setError("Ort fehlt.");
-    if (!country.trim()) return setError("Land fehlt.");
-    if (isFlight && !departure.trim()) return setError("Abflughafen ist bei Flügen Pflicht.");
+    if (!place.trim()) return setError(t("form.placeMissing"));
+    if (!country.trim()) return setError(t("form.countryMissing"));
+    if (isFlight && !departure.trim()) return setError(t("form.departureRequired"));
     setSaving(true);
     try {
       const { id } = await saveTrip({
@@ -108,25 +110,25 @@ export default function TripForm({
         await uploadPhotos(id, fd);
       }
       router.refresh();
-      toast(isEdit ? "Gespeichert" : "Aufenthalt angelegt");
+      toast(isEdit ? t("form.saved") : t("form.stayCreated"));
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Speichern fehlgeschlagen.");
+      setError(e instanceof Error ? e.message : t("form.saveFailed"));
       setSaving(false);
     }
   }
 
   async function handleDelete() {
     if (!trip) return;
-    if (!confirm(`„${trip.place}" wirklich löschen?`)) return;
+    if (!confirm(t("form.confirmDelete", { name: trip.place ?? "" }))) return;
     setSaving(true);
     try {
       await deleteTrip(trip.id);
       router.refresh();
-      toast("Gelöscht");
+      toast(t("form.deleted"));
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Löschen fehlgeschlagen.");
+      setError(e instanceof Error ? e.message : t("form.deleteFailed"));
       setSaving(false);
     }
   }
@@ -158,18 +160,18 @@ export default function TripForm({
         transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">{isEdit ? "Aufenthalt bearbeiten" : "Neuer Aufenthalt"}</h2>
-          <button onClick={onClose} className="text-muted hover:text-ink" aria-label="Schließen">
+          <h2 className="text-lg font-semibold">{isEdit ? t("form.editStay") : t("form.newStay")}</h2>
+          <button onClick={onClose} className="text-muted hover:text-ink" aria-label={t("common.close")}>
             ✕
           </button>
         </div>
 
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Ort" required>
+            <Field label={t("form.place")} required>
               <input className={inputCls} value={place} onChange={(e) => setPlace(e.target.value)} />
             </Field>
-            <Field label="Land" required hint={country ? (iso ?? "kein ISO-Code") : undefined}>
+            <Field label={t("form.country")} required hint={country ? (iso ?? t("form.noIso")) : undefined}>
               <input
                 className={inputCls}
                 list="country-list"
@@ -185,7 +187,7 @@ export default function TripForm({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Art">
+            <Field label={t("form.category")}>
               <input className={inputCls} list="category-list" value={category} onChange={(e) => setCategory(e.target.value)} />
               <datalist id="category-list">
                 {CATEGORY_OPTIONS.map((a) => (
@@ -193,16 +195,16 @@ export default function TripForm({
                 ))}
               </datalist>
             </Field>
-            <Field label="Anreise">
+            <Field label={t("form.travelMode")}>
               <select
                 className={inputCls}
                 value={travel_mode}
                 onChange={(e) => setTravelMode(e.target.value as TravelMode | "")}
               >
-                <option value="">—</option>
+                <option value="">{t("common.none")}</option>
                 {TRAVEL_MODES.map((a) => (
                   <option key={a} value={a}>
-                    {TRAVEL_MODE_LABEL[a]}
+                    {t("travelMode." + a)}
                   </option>
                 ))}
               </select>
@@ -211,17 +213,17 @@ export default function TripForm({
 
           {isFlight && (
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Abflughafen" required hint="Stadt oder IATA">
-                <AirportInput value={departure} onChange={setDeparture} placeholder="z.B. Frankfurt" className={inputCls} />
+              <Field label={t("form.departureAirport")} required hint={t("form.cityOrIata")}>
+                <AirportInput value={departure} onChange={setDeparture} placeholder={t("form.departurePlaceholder")} className={inputCls} />
               </Field>
-              <Field label="Zielflughafen" hint="optional, Stadt oder IATA">
-                <AirportInput value={arrival} onChange={setArrival} placeholder="z.B. Honolulu" className={inputCls} />
+              <Field label={t("form.arrivalAirport")} hint={t("form.optionalCityOrIata")}>
+                <AirportInput value={arrival} onChange={setArrival} placeholder={t("form.arrivalPlaceholder")} className={inputCls} />
               </Field>
             </div>
           )}
 
           {isFlight && (
-            <Field label="Zwischenstopps" hint="Gabelflug — jede Teilstrecke zählt als Flug">
+            <Field label={t("form.layovers")} hint={t("form.layoverHint")}>
               <div className="space-y-2">
                 {stops.map((s, i) => (
                   <div key={i} className="flex items-center gap-2">
@@ -230,7 +232,7 @@ export default function TripForm({
                       <AirportInput
                         value={s}
                         onChange={(v) => setStops((prev) => prev.map((x, j) => (j === i ? v : x)))}
-                        placeholder="z.B. Vancouver"
+                        placeholder={t("form.layoverPlaceholder")}
                         className={`${inputCls} w-full`}
                       />
                     </div>
@@ -238,7 +240,7 @@ export default function TripForm({
                       type="button"
                       onClick={() => setStops((prev) => prev.filter((_, j) => j !== i))}
                       className="px-2 text-muted hover:text-ink"
-                      title="Entfernen"
+                      title={t("form.remove")}
                     >
                       ✕
                     </button>
@@ -249,22 +251,22 @@ export default function TripForm({
                   onClick={() => setStops((prev) => [...prev, ""])}
                   className="rounded-lg border border-dashed border-line px-3 py-1.5 text-sm text-muted hover:text-ink"
                 >
-                  + Stopp hinzufügen
+                  {t("form.addStop")}
                 </button>
               </div>
             </Field>
           )}
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Start">
+            <Field label={t("form.start")}>
               <input type="date" className={inputCls} value={start} onChange={(e) => setStart(e.target.value)} />
             </Field>
-            <Field label="Ende" hint={days ? `${days} Tage` : undefined}>
+            <Field label={t("form.end")} hint={days ? `${days} ${t("common.days")}` : undefined}>
               <input type="date" className={inputCls} value={end} onChange={(e) => setEnd(e.target.value)} />
             </Field>
           </div>
 
-          <Field label="Wer von uns">
+          <Field label={t("form.whoOfUs")}>
             <div className="flex flex-wrap gap-2">
               {persons.map((p) => {
                 const on = who.has(p.code);
@@ -289,16 +291,16 @@ export default function TripForm({
             </div>
           </Field>
 
-          <Field label="Wer sonst">
+          <Field label={t("form.whoElse")}>
             <input
               className={inputCls}
               value={otherTravelers}
               onChange={(e) => setOtherTravelers(e.target.value)}
-              placeholder="kommagetrennt"
+              placeholder={t("form.commaSeparated")}
             />
           </Field>
 
-          <Field label="Kommentar">
+          <Field label={t("form.comment")}>
             <textarea
               className={`${inputCls} min-h-[64px] resize-y`}
               value={comment}
@@ -307,7 +309,7 @@ export default function TripForm({
           </Field>
 
           {/* Photos */}
-          <Field label="Fotos">
+          <Field label={t("form.photos")}>
             {photos.length > 0 && (
               <div className="mb-2 flex flex-wrap gap-2">
                 {photos.map((p) => (
@@ -324,7 +326,7 @@ export default function TripForm({
                       <button
                         type="button"
                         onClick={() => makeCover(p)}
-                        title="Als Cover"
+                        title={t("form.asCover")}
                         className="rounded bg-surface/90 px-1.5 text-xs"
                       >
                         ★
@@ -332,7 +334,7 @@ export default function TripForm({
                       <button
                         type="button"
                         onClick={() => removePhoto(p)}
-                        title="Löschen"
+                        title={t("common.delete")}
                         className="rounded bg-surface/90 px-1.5 text-xs"
                       >
                         🗑
@@ -351,8 +353,8 @@ export default function TripForm({
               className="block w-full text-sm text-muted file:mr-3 file:rounded-full file:border-0 file:bg-surface-2 file:px-3 file:py-1.5 file:text-sm file:text-ink"
             />
             <p className="mt-1 text-xs text-muted">
-              {files.length > 0 ? `${files.length} Datei(en) ausgewählt · ` : ""}
-              Große Fotos (&gt;1&nbsp;MB) werden automatisch verkleinert.
+              {files.length > 0 ? `${files.length} ${t("form.filesSelected")} · ` : ""}
+              {t("form.photoCompressHint")}
             </p>
           </Field>
 
@@ -366,7 +368,7 @@ export default function TripForm({
                 disabled={saving}
                 className="text-sm text-[var(--color-arc)] hover:underline disabled:opacity-50"
               >
-                Löschen
+                {t("common.delete")}
               </button>
             ) : (
               <span />
@@ -377,7 +379,7 @@ export default function TripForm({
                 onClick={onClose}
                 className="rounded-full border border-line px-4 py-2 text-sm text-muted hover:text-ink"
               >
-                Abbrechen
+                {t("common.cancel")}
               </button>
               <button
                 type="button"
@@ -385,7 +387,7 @@ export default function TripForm({
                 disabled={saving}
                 className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-surface transition-transform active:scale-95 disabled:opacity-50"
               >
-                {saving ? "Speichern…" : "Speichern"}
+                {saving ? t("common.saving") : t("common.save")}
               </button>
             </div>
           </div>

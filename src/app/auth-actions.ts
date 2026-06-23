@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, sessionToken, hashPassword } from "@/lib/auth";
 import { getSettings } from "@/lib/settings";
+import { getT } from "@/lib/i18n/server";
 
 export type LoginState = { error?: string };
 
@@ -21,7 +22,8 @@ export async function login(_prev: LoginState, formData: FormData): Promise<Logi
     ok = !!process.env.APP_PASSWORD && password === process.env.APP_PASSWORD;
   }
   if (!ok) {
-    return { error: "Falsches Passwort." };
+    const t = await getT();
+    return { error: t("login.wrongPassword") };
   }
   const token = await sessionToken(process.env.AUTH_SECRET!);
   (await cookies()).set(SESSION_COOKIE, token, {

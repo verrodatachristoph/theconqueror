@@ -9,6 +9,7 @@ import { feature } from "topojson-client";
 import countries from "i18n-iso-countries";
 import worldData from "world-atlas/countries-110m.json";
 import { flagEmoji } from "@/lib/iso";
+import { useT } from "@/components/i18n/LanguageProvider";
 import type { Trip } from "@/types/database.types";
 import {
   aggregateByCountry,
@@ -377,6 +378,7 @@ export default function WorldMap({
 }
 
 function MapTooltip({ hover }: { hover: NonNullable<Hover> }) {
+  const t = useT();
   const style: React.CSSProperties = {
     left: Math.max(8, hover.x + 12),
     top: Math.max(8, hover.y + 12),
@@ -392,7 +394,7 @@ function MapTooltip({ hover }: { hover: NonNullable<Hover> }) {
             {flagEmoji(hover.iso3)} {hover.name}
           </div>
           <div className="mt-0.5 text-xs text-muted">
-            {hover.trips.length} {hover.trips.length === 1 ? "Aufenthalt" : "Aufenthalte"}
+            {hover.trips.length} {hover.trips.length === 1 ? t("home.stay") : t("home.stays")}
           </div>
           <ul className="mt-1.5 space-y-0.5 text-xs text-ink/80">
             {hover.trips.slice(0, 6).map((t) => (

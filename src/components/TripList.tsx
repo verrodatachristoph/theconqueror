@@ -2,9 +2,10 @@
 
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
-import { personColor, yearOf, isUpcoming, TRAVEL_MODE_ICON, TRAVEL_MODE_LABEL } from "@/lib/trips";
+import { personColor, yearOf, isUpcoming, TRAVEL_MODE_ICON } from "@/lib/trips";
 import { flagEmoji } from "@/lib/iso";
 import EmptyState from "@/components/EmptyState";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 export default function TripList({
   trips,
@@ -15,11 +16,12 @@ export default function TripList({
   persons: Person[];
   onOpen: (t: TripWithMedia) => void;
 }) {
+  const tr = useT();
   const nameByCode = new Map(persons.map((p) => [p.code, p.name]));
 
   if (!trips.length)
     return (
-      <EmptyState icon="📍" title="Keine Aufenthalte" hint="Für diese Auswahl gibt es nichts zu zeigen — Filter anpassen oder eine Reise anlegen." />
+      <EmptyState icon="📍" title={tr("list.emptyTitle")} hint={tr("list.emptyHint")} />
     );
 
   return (
@@ -54,23 +56,23 @@ export default function TripList({
                       className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
                       style={{ background: "#6d5bd020", color: "#6d5bd0" }}
                     >
-                      geplant
+                      {tr("common.planned")}
                     </span>
                   )}
                   {needsAirport && (
                     <span className="shrink-0 rounded-full bg-[var(--color-arc)]/15 px-2 py-0.5 text-[10px] font-medium text-[var(--color-arc)]">
-                      Abflughafen nachtragen
+                      {tr("tripDetail.needAirport")}
                     </span>
                   )}
                 </div>
                 <div className="mt-0.5 flex items-center gap-2 text-xs text-muted">
-                  <span>{yearOf(t) ?? "—"}</span>
+                  <span>{yearOf(t) ?? tr("common.none")}</span>
                   <span>·</span>
                   <span>
-                    {TRAVEL_MODE_ICON[t.travel_mode ?? ""] ?? ""} {TRAVEL_MODE_LABEL[t.travel_mode ?? ""] ?? "—"}
+                    {TRAVEL_MODE_ICON[t.travel_mode ?? ""] ?? ""} {t.travel_mode ? tr("travelMode." + t.travel_mode) : tr("common.none")}
                   </span>
                   <span>·</span>
-                  <span>{t.days ?? "?"} T</span>
+                  <span>{t.days ?? "?"} {tr("common.daysShort")}</span>
                 </div>
               </div>
 

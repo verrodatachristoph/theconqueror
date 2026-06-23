@@ -22,17 +22,6 @@ import {
   updateSharing,
 } from "@/app/admin-actions";
 
-const METRIC_LABEL: Record<string, string> = {
-  trips: "Reisen (Anzahl)",
-  countries: "Länder (unique)",
-  continents: "Kontinente",
-  flights: "Flüge",
-  maxDays: "Längster Aufenthalt am Stück (Tage)",
-  maxKm: "Weiteste Distanz (km)",
-  familyTrips: "Reisen mit allen",
-  years: "Verschiedene Jahre",
-};
-
 const input = "rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-accent";
 
 export default function AdminPage({
@@ -44,6 +33,7 @@ export default function AdminPage({
   settings: PublicSettings;
   achievementDefs: AchievementDef[];
 }) {
+  const t = useT();
   const router = useRouter();
   const [, startTransition] = useTransition();
   const refresh = () => startTransition(() => router.refresh());
@@ -52,7 +42,7 @@ export default function AdminPage({
     <main className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8 md:py-10">
       <TopNav />
       <div className="max-w-4xl">
-        <h1 className="mb-6 text-2xl font-semibold tracking-tight">Admin</h1>
+        <h1 className="mb-6 text-2xl font-semibold tracking-tight">{t("nav.admin")}</h1>
         <AppearanceSection />
         <PersonsSection persons={persons} onChange={refresh} />
         <SettingsSection settings={settings} onChange={refresh} />
@@ -93,6 +83,7 @@ function AppearanceSection() {
 
 // ── Persons ──────────────────────────────────────────────────────────────────
 function PersonsSection({ persons, onChange }: { persons: Person[]; onChange: () => void }) {
+  const t = useT();
   const [newCode, setNewCode] = useState("");
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState("#3b6ea5");
@@ -101,14 +92,14 @@ function PersonsSection({ persons, onChange }: { persons: Person[]; onChange: ()
   async function add() {
     setErr(null);
     const res = await createPerson(newCode, newName, newColor);
-    if (!res.ok) return setErr(res.error ?? "Fehler.");
+    if (!res.ok) return setErr(res.error ?? t("admin.error"));
     setNewCode("");
     setNewName("");
     onChange();
   }
 
   return (
-    <Section title="Personen">
+    <Section title={t("admin.persons.title")}>
       <div className="space-y-2">
         {persons.map((p) => (
           <PersonRow key={p.code} person={p} onChange={onChange} />
@@ -118,14 +109,14 @@ function PersonsSection({ persons, onChange }: { persons: Person[]; onChange: ()
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4">
         <input
           className={`${input} w-16`}
-          placeholder="Kürzel"
+          placeholder={t("admin.persons.code")}
           maxLength={3}
           value={newCode}
           onChange={(e) => setNewCode(e.target.value.toUpperCase())}
         />
         <input
           className={`${input} flex-1`}
-          placeholder="Name"
+          placeholder={t("admin.persons.name")}
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
         />
@@ -136,7 +127,7 @@ function PersonsSection({ persons, onChange }: { persons: Person[]; onChange: ()
           onChange={(e) => setNewColor(e.target.value)}
         />
         <button onClick={add} className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-surface">
-          Anlegen
+          {t("admin.persons.create")}
         </button>
       </div>
       {err && <p className="mt-2 text-sm text-[var(--color-arc)]">{err}</p>}
@@ -145,6 +136,7 @@ function PersonsSection({ persons, onChange }: { persons: Person[]; onChange: ()
 }
 
 function PersonRow({ person, onChange }: { person: Person; onChange: () => void }) {
+  const t = useT();
   const [name, setName] = useState(person.name);
   const [color, setColor] = useState(person.color);
   const dirty = name !== person.name || color !== person.color;
@@ -172,18 +164,18 @@ function PersonRow({ person, onChange }: { person: Person; onChange: () => void 
         }}
         className="rounded-lg border border-line px-3 py-2 text-sm disabled:opacity-40"
       >
-        Speichern
+        {t("common.save")}
       </button>
       <button
         onClick={async () => {
-          if (confirm(`„${person.name}" löschen? Das Kürzel wird aus allen Reisen entfernt.`)) {
+          if (confirm(t("admin.persons.confirmDelete", { name: person.name }))) {
             await deletePerson(person.code);
             onChange();
           }
         }}
         className="rounded-lg px-2 py-2 text-sm text-[var(--color-arc)] hover:underline"
       >
-        Löschen
+        {t("common.delete")}
       </button>
     </div>
   );
@@ -191,6 +183,7 @@ function PersonRow({ person, onChange }: { person: Person; onChange: () => void 
 
 // ── Settings ─────────────────────────────────────────────────────────────────
 function SettingsSection({ settings, onChange }: { settings: PublicSettings; onChange: () => void }) {
+  const t = useT();
   const [label, setLabel] = useState(settings.homeLabel);
   const [lat, setLat] = useState(settings.homeLat?.toString() ?? "");
   const [lon, setLon] = useState(settings.homeLon?.toString() ?? "");
@@ -201,7 +194,7 @@ function SettingsSection({ settings, onChange }: { settings: PublicSettings; onC
   async function doGeocode() {
     setMsg(null);
     const res = await geocodeHome(geoQuery);
-    if (!res) return setMsg("Ort nicht gefunden.");
+    if (!res) return setMsg(t("admin.home.notFound"));
     setLat(res.lat.toFixed(4));
     setLon(res.lon.toFixed(4));
     if (!label.trim()) setLabel(geoQuery);
@@ -215,44 +208,43 @@ function SettingsSection({ settings, onChange }: { settings: PublicSettings; onC
       home_lon: lon ? Number(lon) : null,
       default_airport: airport || null,
     });
-    setMsg(res.ok ? "Gespeichert ✓" : res.error ?? "Fehler.");
+    setMsg(res.ok ? t("admin.saved") : res.error ?? t("admin.error"));
     if (res.ok) onChange();
   }
 
   return (
-    <Section title="Heimat-Ort & Standard-Abflughafen">
+    <Section title={t("admin.home.title")}>
       <p className="mb-3 text-xs text-muted">
-        Der Heimat-Ort ist der Bezugspunkt für „Weitester Ort"/„Fernweh". Standard-Abflughafen füllt
-        das Reise-Formular vor.
+        {t("admin.home.hint")}
       </p>
       <div className="mb-3 flex flex-wrap items-end gap-2">
         <label className="flex-1">
-          <span className="mb-1 block text-xs text-muted">Ort suchen (geocoden)</span>
+          <span className="mb-1 block text-xs text-muted">{t("admin.home.search")}</span>
           <input
             className={`${input} w-full`}
-            placeholder="z.B. Berlin"
+            placeholder={t("admin.home.searchPlaceholder")}
             value={geoQuery}
             onChange={(e) => setGeoQuery(e.target.value)}
           />
         </label>
         <button onClick={doGeocode} className="rounded-lg border border-line px-3 py-2 text-sm">
-          Koordinaten holen
+          {t("admin.home.fetchCoords")}
         </button>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <Labeled label="Bezeichnung">
+        <Labeled label={t("admin.home.label")}>
           <input className={`${input} w-full`} value={label} onChange={(e) => setLabel(e.target.value)} />
         </Labeled>
-        <Labeled label="Breite (lat)">
+        <Labeled label={t("admin.home.lat")}>
           <input className={`${input} w-full`} value={lat} onChange={(e) => setLat(e.target.value)} />
         </Labeled>
-        <Labeled label="Länge (lon)">
+        <Labeled label={t("admin.home.lon")}>
           <input className={`${input} w-full`} value={lon} onChange={(e) => setLon(e.target.value)} />
         </Labeled>
-        <Labeled label="Standard-Abflughafen">
+        <Labeled label={t("admin.home.defaultAirport")}>
           <input
             className={`${input} w-full`}
-            placeholder="z.B. FRA"
+            placeholder={t("admin.home.airportPlaceholder")}
             value={airport}
             onChange={(e) => setAirport(e.target.value.toUpperCase())}
           />
@@ -260,7 +252,7 @@ function SettingsSection({ settings, onChange }: { settings: PublicSettings; onC
       </div>
       <div className="mt-4 flex items-center gap-3">
         <button onClick={save} className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-surface">
-          Speichern
+          {t("common.save")}
         </button>
         {msg && <span className="text-sm text-muted">{msg}</span>}
       </div>
@@ -269,6 +261,7 @@ function SettingsSection({ settings, onChange }: { settings: PublicSettings; onC
 }
 
 function SharingSection({ token, onChange }: { token: string | null; onChange: () => void }) {
+  const t = useT();
   const [link, setLink] = useState("");
   const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -285,10 +278,9 @@ function SharingSection({ token, onChange }: { token: string | null; onChange: (
   };
 
   return (
-    <Section title="Öffentlicher Teilen-Link">
+    <Section title={t("admin.sharing.title")}>
       <p className="mb-3 text-xs text-muted">
-        Eine schreibgeschützte Ansicht (Karte &amp; Statistik) ohne Passwort. Jeder mit dem Link kann sie
-        sehen — zum Deaktivieren einfach den Link zurückziehen.
+        {t("admin.sharing.hint")}
       </p>
       {token ? (
         <div className="space-y-3">
@@ -302,18 +294,18 @@ function SharingSection({ token, onChange }: { token: string | null; onChange: (
               }}
               className="rounded-lg border border-line px-3 py-2 text-sm"
             >
-              {copied ? "Kopiert ✓" : "Kopieren"}
+              {copied ? t("admin.sharing.copied") : t("admin.sharing.copy")}
             </button>
             <a href={link} target="_blank" rel="noreferrer" className="rounded-lg border border-line px-3 py-2 text-sm">
-              Öffnen
+              {t("admin.sharing.open")}
             </a>
           </div>
           <div className="flex gap-4 text-sm">
             <button onClick={() => act("regenerate")} disabled={busy} className="text-muted hover:text-ink disabled:opacity-50">
-              Neuen Link erzeugen
+              {t("admin.sharing.regenerate")}
             </button>
             <button onClick={() => act("disable")} disabled={busy} className="text-[var(--color-arc)] hover:underline disabled:opacity-50">
-              Teilen deaktivieren
+              {t("admin.sharing.disable")}
             </button>
           </div>
         </div>
@@ -323,7 +315,7 @@ function SharingSection({ token, onChange }: { token: string | null; onChange: (
           disabled={busy}
           className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-surface disabled:opacity-50"
         >
-          Teilen aktivieren
+          {t("admin.sharing.enable")}
         </button>
       )}
     </Section>
@@ -331,47 +323,49 @@ function SharingSection({ token, onChange }: { token: string | null; onChange: (
 }
 
 function PasswordSection() {
+  const t = useT();
   const [pw, setPw] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
   return (
-    <Section title="Familien-Passwort ändern">
+    <Section title={t("admin.password.title")}>
       <div className="flex flex-wrap items-center gap-2">
         <input
           type="text"
           className={`${input} flex-1`}
-          placeholder="Neues Passwort"
+          placeholder={t("admin.password.placeholder")}
           value={pw}
           onChange={(e) => setPw(e.target.value)}
         />
         <button
           onClick={async () => {
             const res = await changePassword(pw);
-            setMsg(res.ok ? "Passwort geändert ✓" : res.error ?? "Fehler.");
+            setMsg(res.ok ? t("admin.password.changed") : res.error ?? t("admin.error"));
             if (res.ok) setPw("");
           }}
           className="rounded-lg bg-ink px-4 py-2 text-sm font-medium text-surface"
         >
-          Ändern
+          {t("admin.password.change")}
         </button>
         {msg && <span className="text-sm text-muted">{msg}</span>}
       </div>
-      <p className="mt-2 text-xs text-muted">Gilt sofort für neue Logins. Bestehende Sitzungen bleiben aktiv.</p>
+      <p className="mt-2 text-xs text-muted">{t("admin.password.hint")}</p>
     </Section>
   );
 }
 
 // ── Achievements ─────────────────────────────────────────────────────────────
 function AchievementsSection({ defs, onChange }: { defs: AchievementDef[]; onChange: () => void }) {
+  const t = useT();
   const empty = { id: "", icon: "🏆", title: "", description: "", metric: "trips", target: 1, sort: 999, enabled: true };
   return (
-    <Section title="Erfolge / Ziele">
+    <Section title={t("admin.achievements.title")}>
       <div className="space-y-3">
         {defs.map((d) => (
           <AchievementRow key={d.id} def={d} onChange={onChange} />
         ))}
       </div>
       <div className="mt-4 border-t border-line pt-4">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">Neuen Erfolg anlegen</p>
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted">{t("admin.achievements.createNew")}</p>
         <AchievementRow def={empty} isNew onChange={onChange} />
       </div>
     </Section>
@@ -387,6 +381,7 @@ function AchievementRow({
   isNew?: boolean;
   onChange: () => void;
 }) {
+  const t = useT();
   const [d, setD] = useState(def);
   const [err, setErr] = useState<string | null>(null);
   const set = (patch: Partial<typeof d>) => setD((x) => ({ ...x, ...patch }));
@@ -405,33 +400,33 @@ function AchievementRow({
         <input className={`${input} w-12 text-center`} value={d.icon} onChange={(e) => set({ icon: e.target.value })} />
         <input
           className={`${input} flex-1`}
-          placeholder="Titel"
+          placeholder={t("admin.achievements.titlePlaceholder")}
           value={d.title}
           onChange={(e) => set({ title: e.target.value })}
         />
         <label className="flex items-center gap-1.5 text-xs text-muted">
           <input type="checkbox" checked={d.enabled} onChange={(e) => set({ enabled: e.target.checked })} />
-          aktiv
+          {t("admin.achievements.active")}
         </label>
       </div>
       <div className="mt-2 flex flex-wrap items-center gap-2">
         <input
           className={`${input} flex-1`}
-          placeholder="Beschreibung"
+          placeholder={t("admin.achievements.descriptionPlaceholder")}
           value={d.description}
           onChange={(e) => set({ description: e.target.value })}
         />
         <select className={input} value={d.metric} onChange={(e) => set({ metric: e.target.value })}>
           {ACHIEVEMENT_METRICS.map((m) => (
             <option key={m} value={m}>
-              {METRIC_LABEL[m] ?? m}
+              {t("admin.metric." + m)}
             </option>
           ))}
         </select>
         <input
           type="number"
           className={`${input} w-24`}
-          placeholder="Ziel"
+          placeholder={t("admin.achievements.targetPlaceholder")}
           value={d.target}
           onChange={(e) => set({ target: Number(e.target.value) })}
         />
@@ -448,24 +443,24 @@ function AchievementRow({
               sort: d.sort ?? 0,
               enabled: d.enabled,
             });
-            if (!res.ok) return setErr(res.error ?? "Fehler.");
+            if (!res.ok) return setErr(res.error ?? t("admin.error"));
             onChange();
           }}
           className="rounded-lg bg-ink px-3 py-2 text-sm font-medium text-surface"
         >
-          {isNew ? "Anlegen" : "Speichern"}
+          {isNew ? t("admin.achievements.create") : t("common.save")}
         </button>
         {!isNew && (
           <button
             onClick={async () => {
-              if (confirm(`Erfolg „${d.title}" löschen?`)) {
+              if (confirm(t("admin.achievements.confirmDelete", { title: d.title }))) {
                 await deleteAchievement(d.id);
                 onChange();
               }
             }}
             className="rounded-lg px-2 py-2 text-sm text-[var(--color-arc)] hover:underline"
           >
-            Löschen
+            {t("common.delete")}
           </button>
         )}
       </div>

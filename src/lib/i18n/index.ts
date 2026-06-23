@@ -1,5 +1,5 @@
-import de from "@/messages/de";
-import en from "@/messages/en";
+import de from "@/messages/de.json";
+import en from "@/messages/en.json";
 import { defaultLocale, type Locale } from "./config";
 
 const dictionaries = { de, en } as const;

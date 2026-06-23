@@ -6,6 +6,7 @@ import { toIso3 } from "@/lib/iso";
 import { geocode } from "@/lib/geocode";
 import { computeDays } from "@/lib/trips";
 import { getTripPhotos, type SignedPhoto } from "@/lib/data";
+import { getT } from "@/lib/i18n/server";
 import type { TravelMode } from "@/types/database.types";
 
 export type TripInput = {
@@ -179,10 +180,11 @@ export async function searchAirports(q: string): Promise<AirportHit[]> {
 }
 
 export async function addWish(country: string): Promise<{ ok: boolean; error?: string }> {
+  const t = await getT();
   const name = country.trim();
-  if (!name) return { ok: false, error: "Land fehlt." };
+  if (!name) return { ok: false, error: t("form.countryMissing") };
   const iso3 = toIso3(name);
-  if (!iso3) return { ok: false, error: `„${name}" konnte keinem Land zugeordnet werden.` };
+  if (!iso3) return { ok: false, error: t("dest.countryNotFound", { name }) };
   const supabase = createAdminClient();
   const { error } = await supabase
     .from("wishlist")

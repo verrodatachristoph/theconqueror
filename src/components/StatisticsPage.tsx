@@ -29,6 +29,7 @@ import Stats from "@/components/Stats";
 import StatTile from "@/components/StatTile";
 import Wrapped from "@/components/Wrapped";
 import { Stagger } from "@/components/motion";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 export default function StatisticsPage({
   trips,
@@ -39,6 +40,7 @@ export default function StatisticsPage({
   persons: Person[];
   home: Home;
 }) {
+  const t = useT();
   const [enabled, setEnabled] = useState<Set<string>>(new Set());
   const [aCode, setACode] = useState(persons[0]?.code ?? "");
   const [bCode, setBCode] = useState(persons[1]?.code ?? persons[0]?.code ?? "");
@@ -90,9 +92,9 @@ export default function StatisticsPage({
             value={recapYear}
             onChange={(e) => setRecapYear(e.target.value === "all" ? "all" : Number(e.target.value))}
             className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-accent"
-            title="Zeitraum für den Rückblick"
+            title={t("stats.recapPeriod")}
           >
-            <option value="all">Alle Jahre</option>
+            <option value="all">{t("stats.allYears")}</option>
             {years.map((y) => (
               <option key={y} value={y}>
                 {y}
@@ -102,48 +104,49 @@ export default function StatisticsPage({
           <button
             onClick={() => setRecapOpen(true)}
             className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform active:scale-95"
+            aria-label={t("stats.recap")}
           >
-            🎁 Rückblick
+            🎁 {t("stats.recap")}
           </button>
         </div>
       </div>
 
       <section className="mb-10">
-        <h2 className="mb-3 text-lg font-semibold">Gesamt</h2>
+        <h2 className="mb-3 text-lg font-semibold">{t("stats.total")}</h2>
         <Stats trips={visible} />
       </section>
 
       {/* Rekorde & Highlights */}
       <section className="mb-10">
-        <h2 className="mb-3 text-lg font-semibold">Rekorde & Highlights</h2>
+        <h2 className="mb-3 text-lg font-semibold">{t("stats.recordsHighlights")}</h2>
         <Stagger className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
           <HiTile
-            label="Reisefreudigstes Jahr"
+            label={t("stats.busiestYear")}
             value={ov.busiestYear ? String(ov.busiestYear[0]) : "–"}
-            sub={ov.busiestYear ? `${ov.busiestYear[1]} Reisen` : undefined}
+            sub={ov.busiestYear ? t("stats.tripsCount", { n: ov.busiestYear[1] }) : undefined}
           />
-          <HiTile label="Ø Reisedauer" value={`${ov.avgDuration} T`} />
-          <HiTile label="Anteil Ausland" value={`${ov.abroadPct} %`} />
-          <HiTile label="Länder weltweit" value={`${ov.coverage}`} sub="von 195" />
+          <HiTile label={t("stats.avgDuration")} value={`${ov.avgDuration} ${t("common.daysShort")}`} />
+          <HiTile label={t("stats.abroadShare")} value={`${ov.abroadPct} %`} />
+          <HiTile label={t("stats.countriesWorldwide")} value={`${ov.coverage}`} sub={t("stats.outOf195")} />
           <HiTile
-            label="Kontinente"
+            label={t("stats.continents")}
             value={`${ov.continents.length}`}
             sub={ov.continents.join(", ") || undefined}
           />
           <HiTile
-            label="Weitester Ort"
+            label={t("stats.farthestPlace")}
             value={ov.farthest ? ov.farthest.place : "–"}
-            sub={ov.farthest ? `${ov.farthest.km.toLocaleString("de")} km ab ${ov.homeLabel}` : undefined}
+            sub={ov.farthest ? t("stats.kmFromHome", { km: ov.farthest.km.toLocaleString("de"), home: ov.homeLabel }) : undefined}
           />
           <HiTile
-            label="Meiste Tage (Land)"
+            label={t("stats.mostDaysCountry")}
             value={ds.topDaysCountries[0]?.country ?? "–"}
-            sub={ds.topDaysCountries[0] ? `${ds.topDaysCountries[0].days} Tage gesamt` : undefined}
+            sub={ds.topDaysCountries[0] ? t("stats.daysTotal", { n: ds.topDaysCountries[0].days }) : undefined}
           />
           <HiTile
-            label="Meiste Tage (Ort)"
+            label={t("stats.mostDaysPlace")}
             value={ds.topDaysPlaces[0]?.place ?? "–"}
-            sub={ds.topDaysPlaces[0] ? `${ds.topDaysPlaces[0].days} Tage gesamt` : undefined}
+            sub={ds.topDaysPlaces[0] ? t("stats.daysTotal", { n: ds.topDaysPlaces[0].days }) : undefined}
           />
         </Stagger>
       </section>
@@ -151,7 +154,7 @@ export default function StatisticsPage({
       {/* Saison + Top Länder */}
       <section className="mb-10 grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border border-line bg-surface p-4">
-          <h3 className="mb-3 text-sm font-medium text-ink">Reisemonate</h3>
+          <h3 className="mb-3 text-sm font-medium text-ink">{t("stats.travelMonths")}</h3>
           <ResponsiveContainer width="100%" height={190}>
             <BarChart data={ov.byMonth} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
               <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
@@ -160,13 +163,13 @@ export default function StatisticsPage({
                 cursor={{ fill: "var(--color-surface-2)" }}
                 contentStyle={{ borderRadius: 12, border: "1px solid var(--color-line)", fontSize: 12 }}
               />
-              <Bar dataKey="trips" name="Reisen" fill="var(--color-accent)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="trips" name={t("common.trips")} fill="var(--color-accent)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
         <div className="rounded-2xl border border-line bg-surface p-4">
-          <h3 className="mb-3 text-sm font-medium text-ink">Top Länder</h3>
+          <h3 className="mb-3 text-sm font-medium text-ink">{t("stats.topCountries")}</h3>
           <ul className="space-y-2.5">
             {ov.topCountries.map((c, i) => (
               <li key={c.country} className="flex items-center gap-3">
@@ -179,7 +182,7 @@ export default function StatisticsPage({
                   />
                 </span>
                 <span className="w-24 shrink-0 text-right text-xs text-muted">
-                  {c.trips} Reisen · {c.days} T
+                  {c.trips} {t("common.trips")} · {c.days} {t("common.daysShort")}
                 </span>
               </li>
             ))}
@@ -189,10 +192,10 @@ export default function StatisticsPage({
 
       {/* Mehr Auswertungen */}
       <section className="mb-10">
-        <h2 className="mb-4 text-lg font-semibold">Mehr Auswertungen</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t("stats.moreAnalyses")}</h2>
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-line bg-surface p-4 lg:col-span-2">
-            <h3 className="mb-3 text-sm font-medium text-ink">Länder über die Zeit</h3>
+            <h3 className="mb-3 text-sm font-medium text-ink">{t("stats.countriesOverTime")}</h3>
             <ResponsiveContainer width="100%" height={210}>
               <AreaChart data={ds.growth} margin={{ top: 4, right: 8, bottom: 0, left: -20 }}>
                 <defs>
@@ -207,14 +210,14 @@ export default function StatisticsPage({
                   cursor={{ stroke: "var(--color-line)" }}
                   contentStyle={{ borderRadius: 12, border: "1px solid var(--color-line)", fontSize: 12 }}
                 />
-                <Area type="monotone" dataKey="total" name="Länder gesamt" stroke="var(--color-accent)" strokeWidth={2.5} fill="url(#growthFill)" />
+                <Area type="monotone" dataKey="total" name={t("stats.countriesTotal")} stroke="var(--color-accent)" strokeWidth={2.5} fill="url(#growthFill)" />
               </AreaChart>
             </ResponsiveContainer>
-            <p className="mt-1 text-xs text-muted">Kumulierte Anzahl besuchter Länder bis zum jeweiligen Jahr.</p>
+            <p className="mt-1 text-xs text-muted">{t("stats.countriesOverTimeCaption")}</p>
           </div>
 
           <div className="rounded-2xl border border-line bg-surface p-4">
-            <h3 className="mb-3 text-sm font-medium text-ink">Anreiseart über die Jahre</h3>
+            <h3 className="mb-3 text-sm font-medium text-ink">{t("travelMode.overYears")}</h3>
             <ResponsiveContainer width="100%" height={190}>
               <BarChart data={ds.travelModeByYear} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <XAxis dataKey="year" tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
@@ -226,33 +229,33 @@ export default function StatisticsPage({
               </BarChart>
             </ResponsiveContainer>
             <div className="mt-2 flex justify-center gap-4 text-xs text-muted">
-              <Dot c="var(--color-accent)" label="Auto" />
-              <Dot c="var(--color-arc)" label="Flugzeug" />
-              <Dot c="#7d8c54" label="Zug" />
+              <Dot c="var(--color-accent)" label={t("travelMode.car")} />
+              <Dot c="var(--color-arc)" label={t("travelMode.plane")} />
+              <Dot c="#7d8c54" label={t("travelMode.train")} />
             </div>
           </div>
 
-          <Card title="Kontinente">
-            <RankList rows={ds.byContinent.map((c) => ({ label: c.name, value: c.value, right: `${c.value} Reisen` }))} />
+          <Card title={t("stats.continents")}>
+            <RankList rows={ds.byContinent.map((c) => ({ label: c.name, value: c.value, right: `${c.value} ${t("common.trips")}` }))} />
           </Card>
 
-          <Card title="Top-Orte">
-            <RankList rows={ds.topPlaces.map((p) => ({ label: p.place, value: p.trips, right: `${p.trips} Reisen · ${p.days} T` }))} />
+          <Card title={t("stats.topPlaces")}>
+            <RankList rows={ds.topPlaces.map((p) => ({ label: p.place, value: p.trips, right: `${p.trips} ${t("common.trips")} · ${p.days} ${t("common.daysShort")}` }))} />
           </Card>
 
-          <Card title="Meiste Tage – Länder">
-            <RankList rows={ds.topDaysCountries.map((c) => ({ label: c.country, value: c.days, right: `${c.days} Tage` }))} />
+          <Card title={t("stats.mostDaysCountries")}>
+            <RankList rows={ds.topDaysCountries.map((c) => ({ label: c.country, value: c.days, right: `${c.days} ${t("common.days")}` }))} />
           </Card>
 
           <div className="flex flex-col justify-center rounded-2xl border border-line bg-surface p-4">
-            <h3 className="mb-2 text-sm font-medium text-ink">Weltabdeckung</h3>
+            <h3 className="mb-2 text-sm font-medium text-ink">{t("stats.worldCoverage")}</h3>
             <div className="text-3xl font-semibold text-ink">
               {ds.coverage} <span className="text-lg text-muted">/ 195</span>
             </div>
             <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-surface-2">
               <div className="h-full rounded-full bg-accent" style={{ width: `${Math.min(100, (ds.coverage / 195) * 100)}%` }} />
             </div>
-            <p className="mt-1 text-xs text-muted">{Math.round((ds.coverage / 195) * 100)} % aller Länder weltweit.</p>
+            <p className="mt-1 text-xs text-muted">{t("stats.worldCoverageCaption", { pct: Math.round((ds.coverage / 195) * 100) })}</p>
           </div>
         </div>
       </section>
@@ -260,10 +263,10 @@ export default function StatisticsPage({
       {/* Head-to-Head */}
       <section className="mb-10">
         <div className="mb-4 flex flex-wrap items-center gap-3">
-          <h2 className="text-lg font-semibold">Head-to-Head</h2>
+          <h2 className="text-lg font-semibold">{t("stats.headToHead")}</h2>
           <div className="flex items-center gap-2 text-sm">
             <PersonSelect persons={persons} value={aCode} onChange={setACode} />
-            <span className="text-muted">vs</span>
+            <span className="text-muted">{t("stats.vs")}</span>
             <PersonSelect persons={persons} value={bCode} onChange={setBCode} />
           </div>
         </div>
@@ -272,19 +275,19 @@ export default function StatisticsPage({
           {/* header row with avatars */}
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-line bg-surface-2/60 p-4">
             <PersonHead code={aCode} name={nameOf(aCode)} color={personColor(persons, aCode)} align="left" />
-            <span className="px-2 text-xs font-medium uppercase tracking-wide text-muted">vs</span>
+            <span className="px-2 text-xs font-medium uppercase tracking-wide text-muted">{t("stats.vs")}</span>
             <PersonHead code={bCode} name={nameOf(bCode)} color={personColor(persons, bCode)} align="right" />
           </div>
 
-          <Row label="Reisen" a={h2h.a.trips} b={h2h.b.trips} />
-          <Row label="Länder" a={h2h.a.countries} b={h2h.b.countries} />
-          <Row label="Tage gesamt" a={h2h.a.days} b={h2h.b.days} />
-          <Row label="Flüge" a={h2h.a.flights} b={h2h.b.flights} />
-          <Row label="Längster Aufenthalt am Stück" a={h2h.a.longest?.days ?? 0} b={h2h.b.longest?.days ?? 0} unit=" T" />
-          <Row label="Erste Reise" a={h2h.a.firstYear ?? 0} b={h2h.b.firstYear ?? 0} compare={false} />
-          <Row label="Letzte Reise" a={h2h.a.lastYear ?? 0} b={h2h.b.lastYear ?? 0} compare={false} />
+          <Row label={t("common.trips")} a={h2h.a.trips} b={h2h.b.trips} />
+          <Row label={t("stats.countries")} a={h2h.a.countries} b={h2h.b.countries} />
+          <Row label={t("stats.daysTotalLabel")} a={h2h.a.days} b={h2h.b.days} />
+          <Row label={t("stats.flights")} a={h2h.a.flights} b={h2h.b.flights} />
+          <Row label={t("stats.longestStay")} a={h2h.a.longest?.days ?? 0} b={h2h.b.longest?.days ?? 0} unit={` ${t("common.daysShort")}`} />
+          <Row label={t("stats.firstTrip")} a={h2h.a.firstYear ?? 0} b={h2h.b.firstYear ?? 0} compare={false} />
+          <Row label={t("stats.lastTrip")} a={h2h.a.lastYear ?? 0} b={h2h.b.lastYear ?? 0} compare={false} />
           <TextRow
-            label="Meistbesuchtes Land"
+            label={t("stats.topCountry")}
             a={h2h.a.topCountry?.[0] ?? "–"}
             b={h2h.b.topCountry?.[0] ?? "–"}
           />
@@ -292,20 +295,20 @@ export default function StatisticsPage({
 
         {/* shared band */}
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <MiniStat label="Gemeinsame Reisen" value={h2h.together} />
-          <MiniStat label="Gemeinsame Länder" value={h2h.sharedCountries} />
-          <MiniStat label={`Nur ${nameOf(aCode)}`} value={h2h.onlyA} />
-          <MiniStat label={`Nur ${nameOf(bCode)}`} value={h2h.onlyB} />
+          <MiniStat label={t("stats.sharedTrips")} value={h2h.together} />
+          <MiniStat label={t("stats.sharedCountries")} value={h2h.sharedCountries} />
+          <MiniStat label={t("stats.onlyPerson", { name: nameOf(aCode) })} value={h2h.onlyA} />
+          <MiniStat label={t("stats.onlyPerson", { name: nameOf(bCode) })} value={h2h.onlyB} />
         </div>
       </section>
 
       {/* Everyone compared */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold">Alle im Vergleich</h2>
+        <h2 className="mb-4 text-lg font-semibold">{t("stats.allCompared")}</h2>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <CompareChart title="Reisen pro Person" data={perPerson} pick={(s) => s.trips} />
-          <CompareChart title="Reisetage pro Person" data={perPerson} pick={(s) => s.days} />
-          <CompareChart title="Länder pro Person" data={perPerson} pick={(s) => s.countries} />
+          <CompareChart title={t("stats.tripsPerPerson")} data={perPerson} pick={(s) => s.trips} />
+          <CompareChart title={t("stats.travelDaysPerPerson")} data={perPerson} pick={(s) => s.days} />
+          <CompareChart title={t("stats.countriesPerPerson")} data={perPerson} pick={(s) => s.countries} />
         </div>
       </section>
 
@@ -313,7 +316,7 @@ export default function StatisticsPage({
         <Wrapped
           trips={recapTrips}
           home={home}
-          scopeLabel={recapYear === "all" ? "Alle Jahre" : String(recapYear)}
+          scopeLabel={recapYear === "all" ? t("stats.allYears") : String(recapYear)}
           onClose={() => setRecapOpen(false)}
         />
       )}
@@ -344,7 +347,8 @@ function Dot({ c, label }: { c: string; label: string }) {
 }
 
 function RankList({ rows }: { rows: { label: string; value: number; right: string }[] }) {
-  if (!rows.length) return <p className="text-sm text-muted">Keine Daten.</p>;
+  const t = useT();
+  if (!rows.length) return <p className="text-sm text-muted">{t("stats.noData")}</p>;
   const max = Math.max(1, ...rows.map((r) => r.value));
   return (
     <ul className="space-y-2.5">

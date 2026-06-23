@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
-import { filterTrips, personColor, yearOf, isUpcoming, TRAVEL_MODE_ICON, TRAVEL_MODE_LABEL } from "@/lib/trips";
+import { filterTrips, personColor, yearOf, isUpcoming, TRAVEL_MODE_ICON } from "@/lib/trips";
 import { flagEmoji } from "@/lib/iso";
 import TopNav from "@/components/TopNav";
 import PersonFilter from "@/components/PersonFilter";
@@ -11,6 +11,7 @@ import TripDetail from "@/components/TripDetail";
 import TripForm from "@/components/TripForm";
 import EmptyState from "@/components/EmptyState";
 import { Reveal } from "@/components/motion";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 function fmt(d: string | null) {
   if (!d) return "";
@@ -27,6 +28,7 @@ export default function DiaryPage({
   persons: Person[];
   defaultAirport: string | null;
 }) {
+  const tr = useT();
   const [enabled, setEnabled] = useState<Set<string>>(new Set());
   const [detail, setDetail] = useState<TripWithMedia | null>(null);
   const [editing, setEditing] = useState<TripWithMedia | null>(null);
@@ -76,9 +78,9 @@ export default function DiaryPage({
       {byYear.map(([year, list]) => (
         <Reveal as="section" key={year} className="mb-8">
           <div className="mb-3 flex items-baseline gap-3">
-            <h2 className="text-2xl font-semibold tracking-tight">{year || "—"}</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">{year || tr("common.none")}</h2>
             <span className="text-sm text-muted">
-              {list.length} {list.length === 1 ? "Reise" : "Reisen"}
+              {list.length} {list.length === 1 ? tr("diary.trip") : tr("common.trips")}
             </span>
           </div>
 
@@ -109,7 +111,7 @@ export default function DiaryPage({
                           className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
                           style={{ background: "#6d5bd020", color: "#6d5bd0" }}
                         >
-                          geplant
+                          {tr("common.planned")}
                         </span>
                       )}
                       <span className="shrink-0 text-xs text-muted">
@@ -121,10 +123,10 @@ export default function DiaryPage({
                         {fmt(t.start_date)} – {fmt(t.end_date)}
                       </span>
                       <span>·</span>
-                      <span>{t.days ?? "?"} Tage</span>
+                      <span>{t.days ?? "?"} {tr("common.days")}</span>
                       <span>·</span>
                       <span>
-                        {TRAVEL_MODE_ICON[t.travel_mode ?? ""] ?? ""} {TRAVEL_MODE_LABEL[t.travel_mode ?? ""] ?? "—"}
+                        {TRAVEL_MODE_ICON[t.travel_mode ?? ""] ?? ""} {t.travel_mode ? tr("travelMode." + t.travel_mode) : tr("common.none")}
                       </span>
                     </div>
                     {t.comment && (
@@ -151,7 +153,7 @@ export default function DiaryPage({
       ))}
 
         {!byYear.length && (
-          <EmptyState icon="📖" title="Noch keine Einträge" hint="Für diese Auswahl gibt es keine Reisen im Tagebuch." />
+          <EmptyState icon="📖" title={tr("diary.emptyTitle")} hint={tr("diary.emptyHint")} />
         )}
       </div>
 

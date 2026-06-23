@@ -5,8 +5,9 @@ import { motion } from "framer-motion";
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia, SignedPhoto } from "@/lib/data";
 import { fetchTripPhotos } from "@/app/actions";
-import { personColor, yearOf, TRAVEL_MODE_ICON, TRAVEL_MODE_LABEL } from "@/lib/trips";
+import { personColor, yearOf, TRAVEL_MODE_ICON } from "@/lib/trips";
 import { flagEmoji } from "@/lib/iso";
+import { useT } from "@/components/i18n/LanguageProvider";
 
 function fmt(d: string | null) {
   if (!d) return "";
@@ -27,6 +28,7 @@ export default function TripDetail({
   onEdit?: (t: TripWithMedia) => void;
   readOnly?: boolean;
 }) {
+  const t = useT();
   const [photos, setPhotos] = useState<SignedPhoto[]>([]);
   const [lightbox, setLightbox] = useState<number | null>(null);
 
@@ -82,7 +84,7 @@ export default function TripDetail({
           <button
             onClick={onClose}
             className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-surface/90 text-ink"
-            aria-label="Schließen"
+            aria-label={t("tripDetail.close")}
           >
             ✕
           </button>
@@ -97,18 +99,18 @@ export default function TripDetail({
         <div className="space-y-5 p-5">
           {/* Meta */}
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <Meta label="Zeitraum" value={`${fmt(trip.start_date)} – ${fmt(trip.end_date)}`} />
-            <Meta label="Dauer" value={`${trip.days ?? "?"} Tage`} />
+            <Meta label={t("tripDetail.period")} value={`${fmt(trip.start_date)} – ${fmt(trip.end_date)}`} />
+            <Meta label={t("tripDetail.duration")} value={`${trip.days ?? "?"} ${t("common.days")}`} />
             <Meta
-              label="Anreise"
-              value={`${TRAVEL_MODE_ICON[trip.travel_mode ?? ""] ?? ""} ${TRAVEL_MODE_LABEL[trip.travel_mode ?? ""] ?? "—"}`}
+              label={t("travelMode.label")}
+              value={`${TRAVEL_MODE_ICON[trip.travel_mode ?? ""] ?? ""} ${trip.travel_mode ? t("travelMode." + trip.travel_mode) : t("common.none")}`}
             />
-            <Meta label="Art" value={trip.category ?? "—"} />
+            <Meta label={t("form.category")} value={trip.category ?? t("common.none")} />
           </div>
 
           {routeNodes.length >= 2 && (
             <div>
-              <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">Flugroute</div>
+              <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">{t("tripDetail.flightRoute")}</div>
               <div className="flex flex-wrap items-center gap-1.5">
                 {routeNodes.map((n, i) => (
                   <span key={i} className="flex items-center gap-1.5">
@@ -122,7 +124,7 @@ export default function TripDetail({
 
           {/* Wer */}
           <div>
-            <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">Wer war dabei</div>
+            <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">{t("tripDetail.whoWasThere")}</div>
             <div className="flex flex-wrap gap-2">
               {who.map((p) => (
                 <span
@@ -143,7 +145,7 @@ export default function TripDetail({
 
           {trip.comment && (
             <div>
-              <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">Kommentar</div>
+              <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">{t("form.comment")}</div>
               <p className="whitespace-pre-wrap text-sm text-ink/90">{trip.comment}</p>
             </div>
           )}
@@ -152,7 +154,7 @@ export default function TripDetail({
           {photos.length > 0 && (
             <div>
               <div className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted">
-                Fotos ({photos.length})
+                {t("tripDetail.photos", { n: photos.length })}
               </div>
               <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
                 {photos.map((p, i) => (
@@ -176,7 +178,7 @@ export default function TripDetail({
                 onClick={() => onEdit(trip)}
                 className="rounded-full bg-ink px-5 py-2 text-sm font-medium text-surface transition-transform active:scale-95"
               >
-                Bearbeiten
+                {t("tripDetail.edit")}
               </button>
             )}
           </div>
@@ -215,6 +217,7 @@ function Lightbox({
   onClose: () => void;
   onNav: (i: number) => void;
 }) {
+  const t = useT();
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -234,14 +237,14 @@ function Lightbox({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.18 }}
     >
-      <button className="absolute right-4 top-4 text-2xl text-white/80" onClick={onClose} aria-label="Schließen">
+      <button className="absolute right-4 top-4 text-2xl text-white/80" onClick={onClose} aria-label={t("tripDetail.close")}>
         ✕
       </button>
       {photos.length > 1 && (
         <button
           className="absolute left-3 text-3xl text-white/70 hover:text-white"
           onClick={(e) => { e.stopPropagation(); onNav(index - 1); }}
-          aria-label="Zurück"
+          aria-label={t("tripDetail.prev")}
         >
           ‹
         </button>
@@ -257,7 +260,7 @@ function Lightbox({
         <button
           className="absolute right-3 text-3xl text-white/70 hover:text-white"
           onClick={(e) => { e.stopPropagation(); onNav(index + 1); }}
-          aria-label="Weiter"
+          aria-label={t("tripDetail.next")}
         >
           ›
         </button>
