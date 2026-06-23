@@ -167,7 +167,12 @@
   },
   "list": {
     "emptyHint": "Nothing to show for this selection — adjust the filters or add a trip.",
-    "emptyTitle": "No stays"
+    "emptyTitle": "No stays",
+    "nextPage": "Next page",
+    "pageOf": "Page {page} / {total}",
+    "paginate": "Show pages",
+    "prevPage": "Previous page",
+    "showAll": "Show all ({n})"
   },
   "login": {
     "passwordLabel": "Family password",

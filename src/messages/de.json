@@ -167,7 +167,12 @@
   },
   "list": {
     "emptyHint": "Für diese Auswahl gibt es nichts zu zeigen — Filter anpassen oder eine Reise anlegen.",
-    "emptyTitle": "Keine Aufenthalte"
+    "emptyTitle": "Keine Aufenthalte",
+    "nextPage": "Nächste Seite",
+    "pageOf": "Seite {page} / {total}",
+    "paginate": "Seitenweise anzeigen",
+    "prevPage": "Vorherige Seite",
+    "showAll": "Alle anzeigen ({n})"
   },
   "login": {
     "passwordLabel": "Familien-Passwort",

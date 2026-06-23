@@ -123,17 +123,6 @@ export default function AppShell({
         <TopNav />
       )}
 
-      {!readOnly && (
-        <div className="mb-5 flex justify-end">
-          <button
-            onClick={openNew}
-            className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
-          >
-            {tr("home.newStay")}
-          </button>
-        </div>
-      )}
-
       <div className="mb-5">
         <PersonFilter
           persons={persons}
@@ -285,6 +274,14 @@ export default function AppShell({
           >
             ✈️ {tr("home.withoutAirport")}{missingCount ? ` (${missingCount})` : ""}
           </button>
+          {!readOnly && (
+            <button
+              onClick={openNew}
+              className="rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
+            >
+              {tr("home.newStay")}
+            </button>
+          )}
         </div>
         <TripList trips={visibleList} persons={persons} onOpen={openDetail} />
       </Reveal>

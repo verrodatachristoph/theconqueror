@@ -1,11 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
 import { personColor, yearOf, isUpcoming, TRAVEL_MODE_ICON } from "@/lib/trips";
 import { flagEmoji } from "@/lib/iso";
 import EmptyState from "@/components/EmptyState";
 import { useT } from "@/components/i18n/LanguageProvider";
+
+const PAGE_SIZE = 20;
 
 export default function TripList({
   trips,
@@ -19,14 +22,28 @@ export default function TripList({
   const tr = useT();
   const nameByCode = new Map(persons.map((p) => [p.code, p.name]));
 
+  const [page, setPage] = useState(1);
+  const [showAll, setShowAll] = useState(false);
+
+  // Reset to the first page whenever the (filtered/sorted) list changes.
+  useEffect(() => {
+    setPage(1);
+  }, [trips]);
+
   if (!trips.length)
     return (
       <EmptyState icon="📍" title={tr("list.emptyTitle")} hint={tr("list.emptyHint")} />
     );
 
+  const totalPages = Math.ceil(trips.length / PAGE_SIZE);
+  const current = Math.min(page, totalPages);
+  const paged = showAll ? trips : trips.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
+  const hasPagination = trips.length > PAGE_SIZE;
+
   return (
+    <>
     <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
-      {trips.map((t) => {
+      {paged.map((t) => {
         const needsAirport = t.travel_mode === "plane" && !t.departure_iata;
         return (
           <li key={t.id}>
@@ -93,5 +110,38 @@ export default function TripList({
         );
       })}
     </ul>
+
+    {hasPagination && (
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-2 text-sm">
+        {!showAll && totalPages > 1 && (
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={current <= 1}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-ink disabled:opacity-40 disabled:hover:text-muted"
+              aria-label={tr("list.prevPage")}
+            >
+              ‹
+            </button>
+            <span className="px-2 text-muted">{tr("list.pageOf", { page: current, total: totalPages })}</span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={current >= totalPages}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-ink disabled:opacity-40 disabled:hover:text-muted"
+              aria-label={tr("list.nextPage")}
+            >
+              ›
+            </button>
+          </div>
+        )}
+        <button
+          onClick={() => setShowAll((s) => !s)}
+          className="rounded-full border border-line px-3 py-1.5 text-muted transition-colors hover:text-ink"
+        >
+          {showAll ? tr("list.paginate") : tr("list.showAll", { n: trips.length })}
+        </button>
+      </div>
+    )}
+    </>
   );
 }
