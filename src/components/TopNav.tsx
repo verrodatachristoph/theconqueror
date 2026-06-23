@@ -32,7 +32,7 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
   const isActive = (href: string, match?: string) => (match ? pathname.startsWith(match) : pathname === href);
 
   return (
-    <header className="sticky top-0 z-40 -mx-4 mb-6 flex flex-col gap-3 border-b border-line bg-parchment/85 px-4 py-3 backdrop-blur md:-mx-8 md:px-8 sm:flex-row sm:items-center sm:justify-between">
+    <header className="sticky top-0 z-40 -mx-4 -mt-6 mb-6 flex flex-col gap-3 border-b border-line bg-parchment/85 px-4 py-3 backdrop-blur md:-mx-8 md:-mt-10 md:px-8 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-3 md:gap-4">
         <Link href="/" className="shrink-0" aria-label="The Conqueror">
           <BrandLockup />
