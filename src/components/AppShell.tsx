@@ -45,7 +45,6 @@ export default function AppShell({
   readOnly?: boolean;
 }) {
   const [enabled, setEnabled] = useState<Set<string>>(new Set());
-  const [onlyMissingAirport, setOnlyMissingAirport] = useState(false);
   const [showArcs, setShowArcs] = useState(true);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<"date" | "days" | "country">("date");
@@ -64,17 +63,7 @@ export default function AppShell({
     });
 
   const byPerson = useMemo(() => filterTrips(trips, enabled), [trips, enabled]);
-  const listTrips = useMemo(
-    () =>
-      onlyMissingAirport
-        ? byPerson.filter((t) => t.travel_mode === "plane" && !t.departure_iata)
-        : byPerson,
-    [byPerson, onlyMissingAirport],
-  );
-  const missingCount = useMemo(
-    () => trips.filter((t) => t.travel_mode === "plane" && !t.departure_iata).length,
-    [trips],
-  );
+  const listTrips = byPerson;
   const focusedTrips = useMemo(
     () => (focused ? byPerson.filter((t) => t.country_iso3 === focused) : []),
     [byPerson, focused],
@@ -264,16 +253,6 @@ export default function AppShell({
             <option value="days">{tr("home.sortLongest")}</option>
             <option value="country">{tr("home.sortCountry")}</option>
           </select>
-          <button
-            onClick={() => setOnlyMissingAirport((v) => !v)}
-            className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
-              onlyMissingAirport
-                ? "border-[var(--color-arc)] bg-[var(--color-arc)]/10 text-[var(--color-arc)]"
-                : "border-line text-muted hover:text-ink"
-            }`}
-          >
-            ✈️ {tr("home.withoutAirport")}{missingCount ? ` (${missingCount})` : ""}
-          </button>
           {!readOnly && (
             <button
               onClick={openNew}

@@ -11,9 +11,9 @@ function BrandLockup() {
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/theConqueror_logo_dark.png" alt="The Conqueror" className="block h-12 w-auto md:h-14 dark:hidden" />
+      <img src="/theConqueror_logo_dark.png" alt="The Conqueror" className="block h-16 w-auto md:h-20 dark:hidden" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/theConqueror_logo_light.png" alt="The Conqueror" className="hidden h-12 w-auto md:h-14 dark:block" />
+      <img src="/theConqueror_logo_light.png" alt="The Conqueror" className="hidden h-16 w-auto md:h-20 dark:block" />
     </>
   );
 }
@@ -37,14 +37,14 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
         <Link href="/" className="shrink-0" aria-label="The Conqueror">
           <BrandLockup />
         </Link>
-        <nav className="no-scrollbar -mx-1 flex items-center gap-1 overflow-x-auto rounded-full border border-line bg-surface p-1">
+        <nav className="no-scrollbar -mx-1 flex items-center gap-1 overflow-x-auto rounded-full border border-line bg-surface p-1.5">
           {LINKS.map((l) => {
             const active = isActive(l.href, l.match);
             return (
               <Link
                 key={l.href}
                 href={l.href}
-                className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`shrink-0 rounded-full px-3.5 py-2 text-base font-medium transition-colors ${
                   active ? "bg-ink text-surface" : "text-muted hover:text-ink"
                 }`}
               >
@@ -62,7 +62,7 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
           href="/admin"
           title={t("nav.admin")}
           aria-label={t("nav.admin")}
-          className={`flex h-9 w-9 items-center justify-center rounded-full border text-xl leading-none transition-colors ${
+          className={`flex h-10 w-10 items-center justify-center rounded-full border text-2xl leading-none transition-colors ${
             pathname.startsWith("/admin")
               ? "border-ink bg-ink text-surface"
               : "border-line text-muted hover:text-ink"
@@ -72,7 +72,7 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
         </Link>
         <button
           onClick={() => logout()}
-          className="rounded-full border border-line px-3 py-2 text-sm text-muted transition-colors hover:text-ink"
+          className="rounded-full border border-line px-4 py-2 text-base text-muted transition-colors hover:text-ink"
           title={t("nav.logout")}
         >
           {t("nav.logout")}

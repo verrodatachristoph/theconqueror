@@ -50,16 +50,16 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
       aria-label={on ? "Switch to light mode" : "Switch to dark mode"}
       title={on ? "Light mode" : "Dark mode"}
       onClick={toggle}
-      className={`relative inline-flex h-7 w-[3.25rem] shrink-0 items-center rounded-full border border-line bg-surface-2 transition-colors ${className}`}
+      className={`relative inline-flex h-8 w-14 shrink-0 items-center rounded-full border border-line bg-surface-2 transition-colors ${className}`}
     >
-      <SunIcon className="pointer-events-none absolute left-[7px] h-3.5 w-3.5 text-muted" />
-      <MoonIcon className="pointer-events-none absolute right-[7px] h-3.5 w-3.5 text-muted" />
+      <SunIcon className="pointer-events-none absolute left-2 h-4 w-4 text-muted" />
+      <MoonIcon className="pointer-events-none absolute right-2 h-4 w-4 text-muted" />
       <span
-        className={`pointer-events-none relative z-10 inline-flex h-[22px] w-[22px] items-center justify-center rounded-full bg-surface text-accent shadow transition-transform duration-200 ${
-          on ? "translate-x-[26px]" : "translate-x-[3px]"
+        className={`pointer-events-none relative z-10 inline-flex h-[26px] w-[26px] items-center justify-center rounded-full bg-surface text-accent shadow transition-transform duration-200 ${
+          on ? "translate-x-[28px]" : "translate-x-[2px]"
         }`}
       >
-        {on ? <MoonIcon className="h-3 w-3" /> : <SunIcon className="h-3 w-3" />}
+        {on ? <MoonIcon className="h-3.5 w-3.5" /> : <SunIcon className="h-3.5 w-3.5" />}
       </span>
     </button>
   );
