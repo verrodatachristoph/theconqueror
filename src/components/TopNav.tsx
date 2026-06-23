@@ -19,15 +19,8 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
   return (
     <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-3 md:gap-4">
-        <Link href="/" className="flex shrink-0 items-center gap-2 text-lg font-semibold tracking-tight md:text-xl">
-          <svg viewBox="0 0 32 32" className="h-6 w-6" aria-hidden>
-            <circle cx="16" cy="16" r="9.5" fill="none" stroke="var(--color-accent)" strokeWidth="1.8" />
-            <path d="M16 6.5a13 13 0 0 1 0 19" fill="none" stroke="var(--color-accent)" strokeWidth="1.2" opacity="0.55" />
-            <path d="M6.5 16h19" stroke="var(--color-accent)" strokeWidth="1.2" opacity="0.55" />
-            <path d="M6.8 11.5C11 8 21 8 25.2 11.5" fill="none" stroke="var(--color-arc)" strokeWidth="1.8" strokeLinecap="round" />
-            <circle cx="16" cy="16" r="2.1" fill="var(--color-arc)" />
-          </svg>
-          <span className="hidden sm:inline">The&nbsp;Conqueror</span>
+        <Link href="/" className="shrink-0 text-lg font-semibold tracking-tight md:text-xl">
+          The&nbsp;Conqueror
         </Link>
         <nav className="no-scrollbar -mx-1 flex items-center gap-1 overflow-x-auto rounded-full border border-line bg-surface p-1">
           {LINKS.map((l) => {

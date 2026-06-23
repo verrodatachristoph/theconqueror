@@ -24,16 +24,9 @@ export default function LoginPage() {
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-sm rounded-3xl border border-line bg-surface/80 p-7 shadow-xl backdrop-blur"
       >
-        <svg viewBox="0 0 32 32" className="h-10 w-10">
-          <circle cx="16" cy="16" r="9.5" fill="none" stroke="var(--color-accent)" strokeWidth="1.8" />
-          <path d="M16 6.5a13 13 0 0 1 0 19" fill="none" stroke="var(--color-accent)" strokeWidth="1.2" opacity="0.55" />
-          <path d="M6.5 16h19" stroke="var(--color-accent)" strokeWidth="1.2" opacity="0.55" />
-          <path d="M6.8 11.5C11 8 21 8 25.2 11.5" fill="none" stroke="var(--color-arc)" strokeWidth="1.8" strokeLinecap="round" />
-          <circle cx="16" cy="16" r="2.1" fill="var(--color-arc)" />
-        </svg>
-
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight">The Conqueror</h1>
-        <p className="mt-1 text-sm text-muted">Wo die Familie schon überall war.</p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/theConqueror_logo_dark.png" alt="The Conqueror" className="mx-auto w-48" />
+        <p className="mt-1 text-center text-sm text-muted">Wo die Familie schon überall war.</p>
 
         <label className="mt-6 block">
           <span className="text-xs font-medium text-muted">Familien-Passwort</span>
