@@ -27,9 +27,9 @@ function topBy(trips: Trip[], key: (t: Trip) => string | null): [string, number]
   return best;
 }
 
-/** Trips a person took part in (their code is in wer_von_uns). */
+/** Trips a person took part in (their code is in travelers). */
 export function tripsOf(trips: Trip[], code: string): Trip[] {
-  return trips.filter((t) => t.wer_von_uns?.includes(code));
+  return trips.filter((t) => t.travelers?.includes(code));
 }
 
 export function personStats(trips: Trip[], code: string): PersonStats {
@@ -40,10 +40,10 @@ export function personStats(trips: Trip[], code: string): PersonStats {
   let longest: Trip | null = null;
   const years: number[] = [];
   for (const t of mine) {
-    if (t.land_iso3) countrySet.add(t.land_iso3);
-    days += t.tage ?? 0;
+    if (t.country_iso3) countrySet.add(t.country_iso3);
+    days += t.days ?? 0;
     flights += flightLegs(t);
-    if ((t.tage ?? 0) > (longest?.tage ?? -1)) longest = t;
+    if ((t.days ?? 0) > (longest?.days ?? -1)) longest = t;
     const y = yearOf(t);
     if (y != null) years.push(y);
   }
@@ -55,8 +55,8 @@ export function personStats(trips: Trip[], code: string): PersonStats {
     countrySet,
     flights,
     longest,
-    topCountry: topBy(mine, (t) => t.land),
-    topPlace: topBy(mine, (t) => t.ort),
+    topCountry: topBy(mine, (t) => t.country),
+    topPlace: topBy(mine, (t) => t.place),
     firstYear: years.length ? Math.min(...years) : null,
     lastYear: years.length ? Math.max(...years) : null,
   };
@@ -97,10 +97,10 @@ export type Overview = {
   abroadPct: number; // share of trips outside DEU
   coverage: number; // distinct countries
   continents: string[];
-  farthest: { ort: string; land: string; km: number } | null;
+  farthest: { place: string; country: string; km: number } | null;
   homeLabel: string;
   byMonth: { month: string; trips: number }[];
-  topCountries: { land: string; trips: number; days: number }[];
+  topCountries: { country: string; trips: number; days: number }[];
 };
 
 const MONTHS = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
@@ -109,7 +109,7 @@ export function overviewStats(trips: Trip[], home: Home): Overview {
   const hasHome = home.lat != null && home.lon != null;
   const yearCount = new Map<number, number>();
   const monthCount = new Array(12).fill(0);
-  const landAgg = new Map<string, { land: string; trips: number; days: number }>();
+  const landAgg = new Map<string, { country: string; trips: number; days: number }>();
   const continentSet = new Set<string>();
   let abroad = 0;
   let totalDays = 0;
@@ -118,32 +118,32 @@ export function overviewStats(trips: Trip[], home: Home): Overview {
   for (const t of trips) {
     const y = yearOf(t);
     if (y != null) yearCount.set(y, (yearCount.get(y) ?? 0) + 1);
-    if (t.datum_start) {
-      const m = Number(t.datum_start.slice(5, 7)) - 1;
+    if (t.start_date) {
+      const m = Number(t.start_date.slice(5, 7)) - 1;
       if (m >= 0 && m < 12) monthCount[m] += 1;
     }
-    if (t.land) {
-      const e = landAgg.get(t.land) ?? { land: t.land, trips: 0, days: 0 };
+    if (t.country) {
+      const e = landAgg.get(t.country) ?? { country: t.country, trips: 0, days: 0 };
       e.trips += 1;
-      e.days += t.tage ?? 0;
-      landAgg.set(t.land, e);
+      e.days += t.days ?? 0;
+      landAgg.set(t.country, e);
     }
-    if (t.land_iso3) {
-      if (t.land_iso3 !== "DEU") abroad += 1;
-      const cont = CONTINENT[t.land_iso3];
+    if (t.country_iso3) {
+      if (t.country_iso3 !== "DEU") abroad += 1;
+      const cont = CONTINENT[t.country_iso3];
       if (cont) continentSet.add(cont);
     }
-    totalDays += t.tage ?? 0;
+    totalDays += t.days ?? 0;
     if (hasHome && t.lat != null && t.lon != null) {
       const km = haversineKm(home.lat!, home.lon!, t.lat, t.lon);
-      if (!farthest || km > farthest.km) farthest = { ort: t.ort ?? "", land: t.land ?? "", km };
+      if (!farthest || km > farthest.km) farthest = { place: t.place ?? "", country: t.country ?? "", km };
     }
   }
 
   let busiestYear: [number, number] | null = null;
   for (const e of yearCount) if (!busiestYear || e[1] > busiestYear[1]) busiestYear = [e[0], e[1]];
 
-  const countrySet = new Set(trips.map((t) => t.land_iso3).filter(Boolean));
+  const countrySet = new Set(trips.map((t) => t.country_iso3).filter(Boolean));
 
   return {
     busiestYear,
@@ -159,46 +159,46 @@ export function overviewStats(trips: Trip[], home: Home): Overview {
 }
 
 export type DeepStats = {
-  topDaysCountries: { land: string; days: number; trips: number }[];
-  topDaysPlaces: { ort: string; days: number; trips: number }[];
-  topPlaces: { ort: string; trips: number; days: number }[];
+  topDaysCountries: { country: string; days: number; trips: number }[];
+  topDaysPlaces: { place: string; days: number; trips: number }[];
+  topPlaces: { place: string; trips: number; days: number }[];
   byContinent: { name: string; value: number }[];
-  growth: { year: number; total: number; neu: number }[];
-  anreiseByYear: { year: number; Auto: number; Flugzeug: number; Zug: number }[];
+  growth: { year: number; total: number; added: number }[];
+  travelModeByYear: { year: number; car: number; plane: number; train: number }[];
   coverage: number;
 };
 
 /** Richer analytics for the statistics page. */
 export function deepStats(trips: Trip[]): DeepStats {
-  const land = new Map<string, { land: string; days: number; trips: number }>();
-  const ort = new Map<string, { ort: string; days: number; trips: number }>();
+  const country = new Map<string, { country: string; days: number; trips: number }>();
+  const place = new Map<string, { place: string; days: number; trips: number }>();
   const cont = new Map<string, number>();
   const firstYear = new Map<string, number>();
-  const byYear = new Map<number, { year: number; Auto: number; Flugzeug: number; Zug: number }>();
+  const byYear = new Map<number, { year: number; car: number; plane: number; train: number }>();
 
   for (const t of trips) {
-    const days = t.tage ?? 0;
+    const days = t.days ?? 0;
     const y = yearOf(t);
-    if (t.land) {
-      const e = land.get(t.land) ?? { land: t.land, days: 0, trips: 0 };
+    if (t.country) {
+      const e = country.get(t.country) ?? { country: t.country, days: 0, trips: 0 };
       e.days += days;
       e.trips += 1;
-      land.set(t.land, e);
+      country.set(t.country, e);
     }
-    if (t.ort) {
-      const e = ort.get(t.ort) ?? { ort: t.ort, days: 0, trips: 0 };
+    if (t.place) {
+      const e = place.get(t.place) ?? { place: t.place, days: 0, trips: 0 };
       e.days += days;
       e.trips += 1;
-      ort.set(t.ort, e);
+      place.set(t.place, e);
     }
-    if (t.land_iso3) {
-      const c = CONTINENT[t.land_iso3];
+    if (t.country_iso3) {
+      const c = CONTINENT[t.country_iso3];
       if (c) cont.set(c, (cont.get(c) ?? 0) + 1);
-      if (y != null) firstYear.set(t.land_iso3, Math.min(firstYear.get(t.land_iso3) ?? y, y));
+      if (y != null) firstYear.set(t.country_iso3, Math.min(firstYear.get(t.country_iso3) ?? y, y));
     }
     if (y != null) {
-      const e = byYear.get(y) ?? { year: y, Auto: 0, Flugzeug: 0, Zug: 0 };
-      if (t.anreise === "Auto" || t.anreise === "Flugzeug" || t.anreise === "Zug") e[t.anreise] += 1;
+      const e = byYear.get(y) ?? { year: y, car: 0, plane: 0, train: 0 };
+      if (t.travel_mode === "car" || t.travel_mode === "plane" || t.travel_mode === "train") e[t.travel_mode] += 1;
       byYear.set(y, e);
     }
   }
@@ -208,19 +208,19 @@ export function deepStats(trips: Trip[]): DeepStats {
   const years = [...new Set(trips.map(yearOf).filter((y): y is number => y != null))].sort((a, b) => a - b);
   let cum = 0;
   const growth = years.map((year) => {
-    const neu = newByYear.get(year) ?? 0;
-    cum += neu;
-    return { year, total: cum, neu };
+    const added = newByYear.get(year) ?? 0;
+    cum += added;
+    return { year, total: cum, added };
   });
 
   return {
-    topDaysCountries: [...land.values()].sort((a, b) => b.days - a.days).slice(0, 5),
-    topDaysPlaces: [...ort.values()].sort((a, b) => b.days - a.days).slice(0, 5),
-    topPlaces: [...ort.values()].sort((a, b) => b.trips - a.trips).slice(0, 5),
+    topDaysCountries: [...country.values()].sort((a, b) => b.days - a.days).slice(0, 5),
+    topDaysPlaces: [...place.values()].sort((a, b) => b.days - a.days).slice(0, 5),
+    topPlaces: [...place.values()].sort((a, b) => b.trips - a.trips).slice(0, 5),
     byContinent: [...cont.entries()].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value),
     growth,
-    anreiseByYear: [...byYear.values()].sort((a, b) => a.year - b.year),
-    coverage: new Set(trips.map((t) => t.land_iso3).filter(Boolean)).size,
+    travelModeByYear: [...byYear.values()].sort((a, b) => a.year - b.year),
+    coverage: new Set(trips.map((t) => t.country_iso3).filter(Boolean)).size,
   };
 }
 
@@ -228,11 +228,11 @@ export function deepStats(trips: Trip[]): DeepStats {
 export function totalFlightKm(trips: Trip[]): number {
   let km = 0;
   for (const t of trips) {
-    if (t.anreise !== "Flugzeug" || t.abflug_lat == null || t.abflug_lon == null) continue;
-    const destLat = t.ziel_lat ?? t.lat;
-    const destLon = t.ziel_lon ?? t.lon;
+    if (t.travel_mode !== "plane" || t.departure_lat == null || t.departure_lon == null) continue;
+    const destLat = t.arrival_lat ?? t.lat;
+    const destLon = t.arrival_lon ?? t.lon;
     if (destLat == null || destLon == null) continue;
-    const pts: [number, number][] = [[t.abflug_lat, t.abflug_lon]];
+    const pts: [number, number][] = [[t.departure_lat, t.departure_lon]];
     for (const s of tripStops(t)) if (s.lat != null && s.lon != null) pts.push([s.lat, s.lon]);
     pts.push([destLat, destLon]);
     for (let i = 0; i < pts.length - 1; i++) {
@@ -270,7 +270,7 @@ export function achievementAggregates(
   allPersonCodes: string[],
   home: Home,
 ): Record<AchievementMetric, number> {
-  const countries = new Set(trips.map((t) => t.land_iso3).filter(Boolean));
+  const countries = new Set(trips.map((t) => t.country_iso3).filter(Boolean));
   const continents = new Set<string>();
   for (const c of countries) {
     const k = CONTINENT[c as string];
@@ -288,10 +288,10 @@ export function achievementAggregates(
     countries: countries.size,
     continents: continents.size,
     flights: totalFlights(trips),
-    maxDays: trips.reduce((m, t) => Math.max(m, t.tage ?? 0), 0),
+    maxDays: trips.reduce((m, t) => Math.max(m, t.days ?? 0), 0),
     maxKm: Math.round(maxKm),
     familyTrips: allPersonCodes.length
-      ? trips.filter((t) => allPersonCodes.every((c) => t.wer_von_uns?.includes(c))).length
+      ? trips.filter((t) => allPersonCodes.every((c) => t.travelers?.includes(c))).length
       : 0,
     years: years.size,
   };
@@ -301,7 +301,7 @@ export type AchievementDef = {
   id: string;
   icon: string;
   title: string;
-  descr: string;
+  description: string;
   metric: string;
   target: number;
   enabled: boolean;
@@ -320,7 +320,7 @@ export function evaluateAchievements(
         id: d.id,
         icon: d.icon,
         title: d.title,
-        desc: d.descr,
+        desc: d.description,
         current,
         target: d.target,
         earned: current >= d.target,
@@ -342,7 +342,7 @@ export function headToHead(trips: Trip[], codeA: string, codeB: string): HeadToH
   const b = personStats(trips, codeB);
   let together = 0;
   for (const t of trips) {
-    const w = t.wer_von_uns ?? [];
+    const w = t.travelers ?? [];
     if (w.includes(codeA) && w.includes(codeB)) together += 1;
   }
   let sharedCountries = 0;

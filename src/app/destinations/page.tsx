@@ -1,6 +1,6 @@
 import { getTrips, getPersons, getWishlist, getAchievementDefs } from "@/lib/data";
 import { getPublicSettings, homeFrom } from "@/lib/settings";
-import ZielePage from "@/components/ZielePage";
+import DestinationsPage from "@/components/DestinationsPage";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ export default async function Ziele() {
     getPublicSettings(),
   ]);
   return (
-    <ZielePage
+    <DestinationsPage
       trips={trips}
       persons={persons}
       wishlist={wishlist}

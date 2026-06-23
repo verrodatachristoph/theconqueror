@@ -7,6 +7,9 @@ import type { AchievementDef } from "@/lib/data";
 import type { PublicSettings } from "@/lib/settings";
 import { ACHIEVEMENT_METRICS } from "@/lib/stats";
 import TopNav from "@/components/TopNav";
+import { useT } from "@/components/i18n/LanguageProvider";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   createPerson,
   updatePerson,
@@ -50,6 +53,7 @@ export default function AdminPage({
       <TopNav />
       <div className="max-w-4xl">
         <h1 className="mb-6 text-2xl font-semibold tracking-tight">Admin</h1>
+        <AppearanceSection />
         <PersonsSection persons={persons} onChange={refresh} />
         <SettingsSection settings={settings} onChange={refresh} />
         <PasswordSection />
@@ -66,6 +70,24 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       <h2 className="mb-4 text-lg font-semibold">{title}</h2>
       {children}
     </section>
+  );
+}
+
+function AppearanceSection() {
+  const t = useT();
+  return (
+    <Section title={t("settings.appearance")}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between gap-4 sm:justify-start">
+          <span className="text-sm text-muted">{t("settings.languageHint")}</span>
+          <LanguageSwitcher />
+        </div>
+        <div className="flex items-center justify-between gap-4 sm:justify-start">
+          <span className="text-sm text-muted">{t("settings.theme")}</span>
+          <ThemeToggle />
+        </div>
+      </div>
+    </Section>
   );
 }
 
@@ -124,8 +146,8 @@ function PersonsSection({ persons, onChange }: { persons: Person[]; onChange: ()
 
 function PersonRow({ person, onChange }: { person: Person; onChange: () => void }) {
   const [name, setName] = useState(person.name);
-  const [color, setColor] = useState(person.farbe);
-  const dirty = name !== person.name || color !== person.farbe;
+  const [color, setColor] = useState(person.color);
+  const dirty = name !== person.name || color !== person.color;
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -340,7 +362,7 @@ function PasswordSection() {
 
 // ── Achievements ─────────────────────────────────────────────────────────────
 function AchievementsSection({ defs, onChange }: { defs: AchievementDef[]; onChange: () => void }) {
-  const empty = { id: "", icon: "🏆", title: "", descr: "", metric: "trips", target: 1, sort: 999, enabled: true };
+  const empty = { id: "", icon: "🏆", title: "", description: "", metric: "trips", target: 1, sort: 999, enabled: true };
   return (
     <Section title="Erfolge / Ziele">
       <div className="space-y-3">
@@ -396,8 +418,8 @@ function AchievementRow({
         <input
           className={`${input} flex-1`}
           placeholder="Beschreibung"
-          value={d.descr}
-          onChange={(e) => set({ descr: e.target.value })}
+          value={d.description}
+          onChange={(e) => set({ description: e.target.value })}
         />
         <select className={input} value={d.metric} onChange={(e) => set({ metric: e.target.value })}>
           {ACHIEVEMENT_METRICS.map((m) => (
@@ -420,7 +442,7 @@ function AchievementRow({
               id: d.id,
               icon: d.icon,
               title: d.title,
-              descr: d.descr,
+              description: d.description,
               metric: d.metric,
               target: d.target,
               sort: d.sort ?? 0,

@@ -2,11 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Person, Anreise } from "@/types/database.types";
+import type { Person, TravelMode } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
 import type { SignedPhoto } from "@/lib/data";
 import { toIso3, germanCountryNames } from "@/lib/iso";
-import { personColor, computeTage } from "@/lib/trips";
+import { personColor, computeDays, TRAVEL_MODES, TRAVEL_MODE_LABEL } from "@/lib/trips";
 import { motion } from "framer-motion";
 import { compressImage } from "@/lib/image";
 import AirportInput from "@/components/AirportInput";
@@ -20,8 +20,7 @@ import {
   setCoverPhoto,
 } from "@/app/actions";
 
-const ARTEN = ["Hotel", "Ferienwohnung", "Ferienhaus", "Resort", "Campingplatz", "Familienhotel"];
-const ANREISEN: Anreise[] = ["Auto", "Flugzeug", "Zug"];
+const CATEGORY_OPTIONS = ["Hotel", "Ferienwohnung", "Ferienhaus", "Resort", "Campingplatz", "Familienhotel"];
 const COUNTRY_NAMES = germanCountryNames();
 
 export default function TripForm({
@@ -38,18 +37,18 @@ export default function TripForm({
   const router = useRouter();
   const isEdit = !!trip;
 
-  const [ort, setOrt] = useState(trip?.ort ?? "");
-  const [land, setLand] = useState(trip?.land ?? "");
-  const [art, setArt] = useState(trip?.art ?? "");
-  const [anreise, setAnreise] = useState<Anreise | "">(trip?.anreise ?? "");
-  const [abflug, setAbflug] = useState(trip?.abflug_iata ?? defaultAirport ?? "");
-  const [ziel, setZiel] = useState(trip?.ziel_iata ?? "");
-  const [stops, setStops] = useState<string[]>(() => (trip?.flug_stops ?? []).map((s) => s.iata));
-  const [start, setStart] = useState(trip?.datum_start ?? "");
-  const [ende, setEnde] = useState(trip?.datum_ende ?? "");
-  const [wer, setWer] = useState<Set<string>>(new Set(trip?.wer_von_uns ?? []));
-  const [werSonst, setWerSonst] = useState(trip?.wer_sonst ?? "");
-  const [kommentar, setKommentar] = useState(trip?.kommentar ?? "");
+  const [place, setPlace] = useState(trip?.place ?? "");
+  const [country, setCountry] = useState(trip?.country ?? "");
+  const [category, setCategory] = useState(trip?.category ?? "");
+  const [travel_mode, setTravelMode] = useState<TravelMode | "">(trip?.travel_mode ?? "");
+  const [departure, setDeparture] = useState(trip?.departure_iata ?? defaultAirport ?? "");
+  const [arrival, setArrival] = useState(trip?.arrival_iata ?? "");
+  const [stops, setStops] = useState<string[]>(() => (trip?.flight_stops ?? []).map((s) => s.iata));
+  const [start, setStart] = useState(trip?.start_date ?? "");
+  const [end, setEnd] = useState(trip?.end_date ?? "");
+  const [who, setWho] = useState<Set<string>>(new Set(trip?.travelers ?? []));
+  const [otherTravelers, setOtherTravelers] = useState(trip?.other_travelers ?? "");
+  const [comment, setComment] = useState(trip?.comment ?? "");
   const [files, setFiles] = useState<File[]>([]);
   const [photos, setPhotos] = useState<SignedPhoto[]>([]);
   const [saving, setSaving] = useState(false);
@@ -69,12 +68,12 @@ export default function TripForm({
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const iso = toIso3(land);
-  const isFlight = anreise === "Flugzeug";
-  const tage = computeTage(start, ende);
+  const iso = toIso3(country);
+  const isFlight = travel_mode === "plane";
+  const days = computeDays(start, end);
 
-  const toggleWer = (code: string) =>
-    setWer((prev) => {
+  const toggleWho = (code: string) =>
+    setWho((prev) => {
       const next = new Set(prev);
       if (next.has(code)) next.delete(code);
       else next.add(code);
@@ -83,25 +82,25 @@ export default function TripForm({
 
   async function handleSave() {
     setError(null);
-    if (!ort.trim()) return setError("Ort fehlt.");
-    if (!land.trim()) return setError("Land fehlt.");
-    if (isFlight && !abflug.trim()) return setError("Abflughafen ist bei Flügen Pflicht.");
+    if (!place.trim()) return setError("Ort fehlt.");
+    if (!country.trim()) return setError("Land fehlt.");
+    if (isFlight && !departure.trim()) return setError("Abflughafen ist bei Flügen Pflicht.");
     setSaving(true);
     try {
       const { id } = await saveTrip({
         id: trip?.id,
-        ort: ort.trim(),
-        land: land.trim(),
-        art: art.trim() || null,
-        anreise: anreise || null,
-        abflug_iata: isFlight ? abflug.trim() : null,
-        ziel_iata: isFlight ? ziel.trim() : null,
+        place: place.trim(),
+        country: country.trim(),
+        category: category.trim() || null,
+        travel_mode: travel_mode || null,
+        departure_iata: isFlight ? departure.trim() : null,
+        arrival_iata: isFlight ? arrival.trim() : null,
         stops: isFlight ? stops.map((s) => s.trim()).filter(Boolean) : [],
-        datum_start: start || null,
-        datum_ende: ende || null,
-        wer_von_uns: [...wer],
-        wer_sonst: werSonst.trim() || null,
-        kommentar: kommentar.trim() || null,
+        start_date: start || null,
+        end_date: end || null,
+        travelers: [...who],
+        other_travelers: otherTravelers.trim() || null,
+        comment: comment.trim() || null,
       });
       if (files.length) {
         const fd = new FormData();
@@ -119,7 +118,7 @@ export default function TripForm({
 
   async function handleDelete() {
     if (!trip) return;
-    if (!confirm(`„${trip.ort}" wirklich löschen?`)) return;
+    if (!confirm(`„${trip.place}" wirklich löschen?`)) return;
     setSaving(true);
     try {
       await deleteTrip(trip.id);
@@ -168,14 +167,14 @@ export default function TripForm({
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <Field label="Ort" required>
-              <input className={inputCls} value={ort} onChange={(e) => setOrt(e.target.value)} />
+              <input className={inputCls} value={place} onChange={(e) => setPlace(e.target.value)} />
             </Field>
-            <Field label="Land" required hint={land ? (iso ?? "kein ISO-Code") : undefined}>
+            <Field label="Land" required hint={country ? (iso ?? "kein ISO-Code") : undefined}>
               <input
                 className={inputCls}
                 list="country-list"
-                value={land}
-                onChange={(e) => setLand(e.target.value)}
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
               />
               <datalist id="country-list">
                 {COUNTRY_NAMES.map((n) => (
@@ -187,9 +186,9 @@ export default function TripForm({
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Art">
-              <input className={inputCls} list="art-list" value={art} onChange={(e) => setArt(e.target.value)} />
-              <datalist id="art-list">
-                {ARTEN.map((a) => (
+              <input className={inputCls} list="category-list" value={category} onChange={(e) => setCategory(e.target.value)} />
+              <datalist id="category-list">
+                {CATEGORY_OPTIONS.map((a) => (
                   <option key={a} value={a} />
                 ))}
               </datalist>
@@ -197,13 +196,13 @@ export default function TripForm({
             <Field label="Anreise">
               <select
                 className={inputCls}
-                value={anreise}
-                onChange={(e) => setAnreise(e.target.value as Anreise | "")}
+                value={travel_mode}
+                onChange={(e) => setTravelMode(e.target.value as TravelMode | "")}
               >
                 <option value="">—</option>
-                {ANREISEN.map((a) => (
+                {TRAVEL_MODES.map((a) => (
                   <option key={a} value={a}>
-                    {a}
+                    {TRAVEL_MODE_LABEL[a]}
                   </option>
                 ))}
               </select>
@@ -213,10 +212,10 @@ export default function TripForm({
           {isFlight && (
             <div className="grid grid-cols-2 gap-3">
               <Field label="Abflughafen" required hint="Stadt oder IATA">
-                <AirportInput value={abflug} onChange={setAbflug} placeholder="z.B. Frankfurt" className={inputCls} />
+                <AirportInput value={departure} onChange={setDeparture} placeholder="z.B. Frankfurt" className={inputCls} />
               </Field>
               <Field label="Zielflughafen" hint="optional, Stadt oder IATA">
-                <AirportInput value={ziel} onChange={setZiel} placeholder="z.B. Honolulu" className={inputCls} />
+                <AirportInput value={arrival} onChange={setArrival} placeholder="z.B. Honolulu" className={inputCls} />
               </Field>
             </div>
           )}
@@ -260,20 +259,20 @@ export default function TripForm({
             <Field label="Start">
               <input type="date" className={inputCls} value={start} onChange={(e) => setStart(e.target.value)} />
             </Field>
-            <Field label="Ende" hint={tage ? `${tage} Tage` : undefined}>
-              <input type="date" className={inputCls} value={ende} onChange={(e) => setEnde(e.target.value)} />
+            <Field label="Ende" hint={days ? `${days} Tage` : undefined}>
+              <input type="date" className={inputCls} value={end} onChange={(e) => setEnd(e.target.value)} />
             </Field>
           </div>
 
           <Field label="Wer von uns">
             <div className="flex flex-wrap gap-2">
               {persons.map((p) => {
-                const on = wer.has(p.code);
+                const on = who.has(p.code);
                 return (
                   <button
                     key={p.code}
                     type="button"
-                    onClick={() => toggleWer(p.code)}
+                    onClick={() => toggleWho(p.code)}
                     className={`flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition-all ${
                       on ? "border-transparent text-surface" : "border-line text-muted"
                     }`}
@@ -293,8 +292,8 @@ export default function TripForm({
           <Field label="Wer sonst">
             <input
               className={inputCls}
-              value={werSonst}
-              onChange={(e) => setWerSonst(e.target.value)}
+              value={otherTravelers}
+              onChange={(e) => setOtherTravelers(e.target.value)}
               placeholder="kommagetrennt"
             />
           </Field>
@@ -302,8 +301,8 @@ export default function TripForm({
           <Field label="Kommentar">
             <textarea
               className={`${inputCls} min-h-[64px] resize-y`}
-              value={kommentar}
-              onChange={(e) => setKommentar(e.target.value)}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
             />
           </Field>
 

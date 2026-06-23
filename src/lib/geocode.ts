@@ -21,10 +21,10 @@ async function nominatim(q: string): Promise<{ lat: number; lon: number } | null
 
 export type Geo = { lat: number; lon: number; source: string } | null;
 
-/** Geocode "ort, land" with the DB cache, ORT-alone and country-centroid fallbacks. */
-export async function geocode(ort: string, land: string): Promise<Geo> {
+/** Geocode "place, country" with the DB cache, ORT-alone and country-centroid fallbacks. */
+export async function geocode(place: string, country: string): Promise<Geo> {
   const supabase = createAdminClient();
-  const key = `${ort}, ${land}`.toLowerCase().replace(/\s+/g, " ").trim();
+  const key = `${place}, ${country}`.toLowerCase().replace(/\s+/g, " ").trim();
 
   const { data: cached } = await supabase
     .from("geocode_cache")
@@ -33,11 +33,11 @@ export async function geocode(ort: string, land: string): Promise<Geo> {
     .maybeSingle();
   if (cached) return { lat: Number(cached.lat), lon: Number(cached.lon), source: cached.source };
 
-  let hit = ort ? await nominatim(`${ort}, ${land}`) : null;
+  let hit = place ? await nominatim(`${place}, ${country}`) : null;
   let source = "nominatim";
-  if (!hit && ort) hit = await nominatim(ort);
-  if (!hit && land) {
-    hit = await nominatim(land);
+  if (!hit && place) hit = await nominatim(place);
+  if (!hit && country) {
+    hit = await nominatim(country);
     source = "country-centroid";
   }
   if (!hit) return null;

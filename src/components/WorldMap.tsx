@@ -82,10 +82,10 @@ export default function WorldMap({
   const tripsByCountry = useMemo(() => {
     const m = new Map<string, Trip[]>();
     for (const t of trips) {
-      if (!t.land_iso3) continue;
-      const list = m.get(t.land_iso3);
+      if (!t.country_iso3) continue;
+      const list = m.get(t.country_iso3);
       if (list) list.push(t);
-      else m.set(t.land_iso3, [t]);
+      else m.set(t.country_iso3, [t]);
     }
     return m;
   }, [trips]);
@@ -104,14 +104,14 @@ export default function WorldMap({
 
   // visited country fill: light -> deep teal by trip count; wishlist = soft gold
   function fillFor(iso3: string | null): string {
-    if (!iso3) return "var(--color-land)";
+    if (!iso3) return "var(--color-country)";
     const agg = byCountry.get(iso3);
     if (agg) {
       const t = Math.sqrt(agg.count / maxCount); // sqrt for gentler low end
       return `color-mix(in oklab, var(--color-accent) ${Math.round(25 + t * 70)}%, var(--color-accent-soft))`;
     }
-    if (wishSet.has(iso3)) return "color-mix(in oklab, #cf9a3f 42%, var(--color-land))";
-    return "var(--color-land)";
+    if (wishSet.has(iso3)) return "color-mix(in oklab, #cf9a3f 42%, var(--color-country))";
+    return "var(--color-country)";
   }
 
   // d3-zoom (wheel + pinch + drag pan), constant strokes via vector-effect
@@ -201,7 +201,7 @@ export default function WorldMap({
             <stop offset="0%" stopColor="#eef4f5" />
             <stop offset="100%" stopColor="#dfe9eb" />
           </radialGradient>
-          <filter id="land-shadow" x="-4%" y="-4%" width="108%" height="108%">
+          <filter id="country-shadow" x="-4%" y="-4%" width="108%" height="108%">
             <feDropShadow dx="0" dy="0.8" stdDeviation="1" floodColor="#1b3a3f" floodOpacity="0.18" />
           </filter>
           <filter id="arc-glow" x="-20%" y="-20%" width="140%" height="140%">
@@ -225,7 +225,7 @@ export default function WorldMap({
           />
 
           {/* countries */}
-          <g filter="url(#land-shadow)">
+          <g filter="url(#country-shadow)">
           {landFeatures.map((f, i) => {
             const iso3 = idToIso3(f.id);
             const visited = iso3 ? byCountry.has(iso3) : false;
@@ -235,7 +235,7 @@ export default function WorldMap({
                 key={i}
                 d={path(f as never) ?? undefined}
                 fill={fillFor(iso3)}
-                stroke={hl ? "var(--color-ink)" : "var(--color-land-edge)"}
+                stroke={hl ? "var(--color-ink)" : "var(--color-country-edge)"}
                 strokeWidth={hl ? 1.2 : 0.5}
                 vectorEffect="non-scaling-stroke"
                 className={visited ? "cursor-pointer transition-[fill,stroke] duration-150" : ""}
@@ -397,7 +397,7 @@ function MapTooltip({ hover }: { hover: NonNullable<Hover> }) {
           <ul className="mt-1.5 space-y-0.5 text-xs text-ink/80">
             {hover.trips.slice(0, 6).map((t) => (
               <li key={t.id} className="flex justify-between gap-3">
-                <span className="truncate">{t.ort}</span>
+                <span className="truncate">{t.place}</span>
                 <span className="shrink-0 text-muted">{yearOf(t) ?? ""}</span>
               </li>
             ))}
@@ -409,11 +409,11 @@ function MapTooltip({ hover }: { hover: NonNullable<Hover> }) {
       ) : (
         <>
           <div className="font-medium text-ink">
-            {hover.trip.ort}
-            {hover.trip.land ? `, ${hover.trip.land}` : ""}
+            {hover.trip.place}
+            {hover.trip.country ? `, ${hover.trip.country}` : ""}
           </div>
           <div className="mt-0.5 text-xs text-muted">
-            {yearOf(hover.trip) ?? ""} · {hover.trip.anreise ?? "—"} · {hover.trip.tage ?? "?"} Tage
+            {yearOf(hover.trip) ?? ""} · {hover.trip.travel_mode ?? "—"} · {hover.trip.days ?? "?"} Tage
           </div>
         </>
       )}

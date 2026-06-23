@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Class-based dark mode: `dark:` utilities follow the .dark class on <html>
+   (set from a cookie), not the OS preference. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ──────────────────────────────────────────────────────────────────────────
    The Conqueror — design tokens
    Calm, warm, "wertig". The map is the star; the UI recedes around it.
@@ -28,6 +32,29 @@
 
 html {
   color-scheme: light;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Dark mode — override the design tokens under .dark (set on <html>).
+   Everything reads from these CSS variables, so the whole UI + map re-themes.
+   ────────────────────────────────────────────────────────────────────────── */
+.dark {
+  --color-parchment: #1b1916; /* app background */
+  --color-surface: #252119; /* cards / panels */
+  --color-surface-2: #2f2a22; /* subtle raised fills */
+  --color-ink: #ece5d8; /* primary text */
+  --color-muted: #9d9384; /* secondary text */
+  --color-line: #3a342b; /* hairline borders */
+
+  --color-ocean: #161d1e; /* map sea */
+  --color-land: #38332a; /* unvisited country */
+  --color-land-edge: #4a4337; /* country borders */
+
+  --color-accent: #4a9d95; /* primary accent (teal) */
+  --color-accent-soft: #234b46; /* deep teal wash */
+  --color-arc: #d2885a; /* flight arcs (terracotta) */
+
+  color-scheme: dark;
 }
 
 body {

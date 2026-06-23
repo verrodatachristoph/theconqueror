@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
-import { filterTrips, personColor, yearOf, isUpcoming } from "@/lib/trips";
+import { filterTrips, personColor, yearOf, isUpcoming, TRAVEL_MODE_ICON, TRAVEL_MODE_LABEL } from "@/lib/trips";
 import { flagEmoji } from "@/lib/iso";
 import TopNav from "@/components/TopNav";
 import PersonFilter from "@/components/PersonFilter";
@@ -12,15 +12,13 @@ import TripForm from "@/components/TripForm";
 import EmptyState from "@/components/EmptyState";
 import { Reveal } from "@/components/motion";
 
-const ANREISE_ICON: Record<string, string> = { Auto: "🚗", Flugzeug: "✈️", Zug: "🚆" };
-
 function fmt(d: string | null) {
   if (!d) return "";
   const [y, m, day] = d.split("-");
   return `${day}.${m}.${y}`;
 }
 
-export default function TagebuchPage({
+export default function DiaryPage({
   trips,
   persons,
   defaultAirport,
@@ -44,8 +42,8 @@ export default function TagebuchPage({
 
   const byYear = useMemo(() => {
     const visible = filterTrips(trips, enabled).slice().sort((a, b) => {
-      const da = a.datum_start ?? "";
-      const db = b.datum_start ?? "";
+      const da = a.start_date ?? "";
+      const db = b.start_date ?? "";
       return db.localeCompare(da); // newest first
     });
     const groups = new Map<number, TripWithMedia[]>();
@@ -98,14 +96,14 @@ export default function TagebuchPage({
                       <img src={t.cover_signed} alt="" className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-2xl opacity-50">
-                        {ANREISE_ICON[t.anreise ?? ""] ?? "📍"}
+                        {TRAVEL_MODE_ICON[t.travel_mode ?? ""] ?? "📍"}
                       </div>
                     )}
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <h3 className="truncate text-base font-semibold text-ink">{t.ort}</h3>
+                      <h3 className="truncate text-base font-semibold text-ink">{t.place}</h3>
                       {isUpcoming(t) && (
                         <span
                           className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium"
@@ -115,25 +113,25 @@ export default function TagebuchPage({
                         </span>
                       )}
                       <span className="shrink-0 text-xs text-muted">
-                        {flagEmoji(t.land_iso3)} {t.land}
+                        {flagEmoji(t.country_iso3)} {t.country}
                       </span>
                     </div>
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
                       <span>
-                        {fmt(t.datum_start)} – {fmt(t.datum_ende)}
+                        {fmt(t.start_date)} – {fmt(t.end_date)}
                       </span>
                       <span>·</span>
-                      <span>{t.tage ?? "?"} Tage</span>
+                      <span>{t.days ?? "?"} Tage</span>
                       <span>·</span>
                       <span>
-                        {ANREISE_ICON[t.anreise ?? ""] ?? ""} {t.anreise ?? "—"}
+                        {TRAVEL_MODE_ICON[t.travel_mode ?? ""] ?? ""} {TRAVEL_MODE_LABEL[t.travel_mode ?? ""] ?? "—"}
                       </span>
                     </div>
-                    {t.kommentar && (
-                      <p className="mt-1 line-clamp-2 text-sm text-ink/80">{t.kommentar}</p>
+                    {t.comment && (
+                      <p className="mt-1 line-clamp-2 text-sm text-ink/80">{t.comment}</p>
                     )}
                     <div className="mt-1.5 flex gap-1">
-                      {(t.wer_von_uns ?? []).map((c) => (
+                      {(t.travelers ?? []).map((c) => (
                         <span
                           key={c}
                           title={nameByCode.get(c) ?? c}

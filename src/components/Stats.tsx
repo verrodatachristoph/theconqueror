@@ -13,15 +13,15 @@ import {
   Pie,
 } from "recharts";
 import type { Trip } from "@/types/database.types";
-import { yearOf, totalFlights } from "@/lib/trips";
+import { yearOf, totalFlights, TRAVEL_MODE_LABEL } from "@/lib/trips";
 import StatTile from "@/components/StatTile";
 import EmptyState from "@/components/EmptyState";
 import { Stagger, Item } from "@/components/motion";
 
-const ANREISE_COLORS: Record<string, string> = {
-  Auto: "var(--color-accent)",
-  Flugzeug: "var(--color-arc)",
-  Zug: "#7d8c54", // olive — fixed travel-mode color, independent of persons
+const TRAVEL_MODE_COLORS: Record<string, string> = {
+  car: "var(--color-accent)",
+  plane: "var(--color-arc)",
+  train: "#7d8c54", // olive — fixed travel-mode color, independent of persons
 };
 
 function topBy(trips: Trip[], key: (t: Trip) => string | null) {
@@ -38,8 +38,8 @@ function topBy(trips: Trip[], key: (t: Trip) => string | null) {
 
 export default function Stats({ trips }: { trips: Trip[] }) {
   const m = useMemo(() => {
-    const days = trips.reduce((s, t) => s + (t.tage ?? 0), 0);
-    const countries = new Set(trips.map((t) => t.land_iso3).filter(Boolean));
+    const days = trips.reduce((s, t) => s + (t.days ?? 0), 0);
+    const countries = new Set(trips.map((t) => t.country_iso3).filter(Boolean));
     const years = new Set(trips.map(yearOf).filter((y): y is number => y != null));
     const perYear = new Map<number, { year: number; trips: number; days: number }>();
     for (const t of trips) {
@@ -47,14 +47,14 @@ export default function Stats({ trips }: { trips: Trip[] }) {
       if (y == null) continue;
       const e = perYear.get(y) ?? { year: y, trips: 0, days: 0 };
       e.trips += 1;
-      e.days += t.tage ?? 0;
+      e.days += t.days ?? 0;
       perYear.set(y, e);
     }
-    const anreise = new Map<string, number>();
-    for (const t of trips) if (t.anreise) anreise.set(t.anreise, (anreise.get(t.anreise) ?? 0) + 1);
+    const travel_mode = new Map<string, number>();
+    for (const t of trips) if (t.travel_mode) travel_mode.set(t.travel_mode, (travel_mode.get(t.travel_mode) ?? 0) + 1);
 
     const longest = trips.reduce<Trip | null>(
-      (best, t) => ((t.tage ?? 0) > (best?.tage ?? -1) ? t : best),
+      (best, t) => ((t.days ?? 0) > (best?.days ?? -1) ? t : best),
       null,
     );
 
@@ -63,10 +63,10 @@ export default function Stats({ trips }: { trips: Trip[] }) {
       days,
       countries: countries.size,
       perYearArr: [...perYear.values()].sort((a, b) => a.year - b.year),
-      anreiseArr: [...anreise.entries()].map(([name, value]) => ({ name, value })),
+      travelModeArr: [...travel_mode.entries()].map(([name, value]) => ({ name, value })),
       longest,
-      topOrt: topBy(trips, (t) => t.ort),
-      topLand: topBy(trips, (t) => t.land),
+      topPlace: topBy(trips, (t) => t.place),
+      topCountry: topBy(trips, (t) => t.country),
       perYearAvg: years.size ? countries.size / years.size : 0,
       flights: totalFlights(trips),
     };
@@ -84,18 +84,18 @@ export default function Stats({ trips }: { trips: Trip[] }) {
       <Kpi label="Länder / Jahr" value={m.perYearAvg.toFixed(1)} />
       <Kpi
         label="Längster Aufenthalt am Stück"
-        value={m.longest ? `${m.longest.tage} T` : "–"}
-        sub={m.longest?.ort ?? undefined}
+        value={m.longest ? `${m.longest.days} T` : "–"}
+        sub={m.longest?.place ?? undefined}
       />
       <Kpi
         label="Meistbesuchter Ort"
-        value={m.topOrt ? m.topOrt[0] : "–"}
-        sub={m.topOrt ? `${m.topOrt[1]}×` : undefined}
+        value={m.topPlace ? m.topPlace[0] : "–"}
+        sub={m.topPlace ? `${m.topPlace[1]}×` : undefined}
       />
       <Kpi
         label="Meistbesuchtes Land"
-        value={m.topLand ? m.topLand[0] : "–"}
-        sub={m.topLand ? `${m.topLand[1]}×` : undefined}
+        value={m.topCountry ? m.topCountry[0] : "–"}
+        sub={m.topCountry ? `${m.topCountry[1]}×` : undefined}
       />
       <Kpi label="Flüge" value={m.flights} />
 
@@ -134,7 +134,7 @@ export default function Stats({ trips }: { trips: Trip[] }) {
         <ResponsiveContainer width="100%" height={180}>
           <PieChart>
             <Pie
-              data={m.anreiseArr}
+              data={m.travelModeArr}
               dataKey="value"
               nameKey="name"
               innerRadius={42}
@@ -142,8 +142,8 @@ export default function Stats({ trips }: { trips: Trip[] }) {
               paddingAngle={2}
               stroke="var(--color-surface)"
             >
-              {m.anreiseArr.map((a) => (
-                <Cell key={a.name} fill={ANREISE_COLORS[a.name] ?? "var(--color-land)"} />
+              {m.travelModeArr.map((a) => (
+                <Cell key={a.name} fill={TRAVEL_MODE_COLORS[a.name] ?? "var(--color-country)"} />
               ))}
             </Pie>
             <Tooltip
@@ -156,13 +156,13 @@ export default function Stats({ trips }: { trips: Trip[] }) {
           </PieChart>
         </ResponsiveContainer>
         <div className="mt-2 flex justify-center gap-4 text-xs text-muted">
-          {m.anreiseArr.map((a) => (
+          {m.travelModeArr.map((a) => (
             <span key={a.name} className="flex items-center gap-1.5">
               <span
                 className="h-2.5 w-2.5 rounded-full"
-                style={{ background: ANREISE_COLORS[a.name] ?? "var(--color-land)" }}
+                style={{ background: TRAVEL_MODE_COLORS[a.name] ?? "var(--color-country)" }}
               />
-              {a.name} ({a.value})
+              {TRAVEL_MODE_LABEL[a.name] ?? a.name} ({a.value})
             </span>
           ))}
         </div>

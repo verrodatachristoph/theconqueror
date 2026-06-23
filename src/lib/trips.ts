@@ -1,8 +1,22 @@
-import type { Trip } from "@/types/database.types";
+import type { Trip, TravelMode } from "@/types/database.types";
 
-/** Person color from the DB (persons.farbe). Falls back to a neutral grey. */
-export function personColor(persons: { code: string; farbe: string }[], code: string): string {
-  return persons.find((p) => p.code === code)?.farbe ?? "#8c8378";
+/** Travel modes in form order. */
+export const TRAVEL_MODES: TravelMode[] = ["car", "plane", "train"];
+
+/** Emoji per travel mode. */
+export const TRAVEL_MODE_ICON: Record<string, string> = { car: "🚗", plane: "✈️", train: "🚆" };
+
+// TODO(i18n): replace with localized labels once frontend translations land.
+/** Display label per travel mode (German for now). */
+export const TRAVEL_MODE_LABEL: Record<string, string> = {
+  car: "Auto",
+  plane: "Flugzeug",
+  train: "Zug",
+};
+
+/** Person color from the DB (persons.color). Falls back to a neutral grey. */
+export function personColor(persons: { code: string; color: string }[], code: string): string {
+  return persons.find((p) => p.code === code)?.color ?? "#8c8378";
 }
 
 /**
@@ -15,7 +29,7 @@ export function personColor(persons: { code: string; farbe: string }[], code: st
 export function filterTrips<T extends Trip>(trips: T[], enabled: Set<string>): T[] {
   if (enabled.size === 0) return trips;
   return trips.filter((t) => {
-    const who = t.wer_von_uns ?? [];
+    const who = t.travelers ?? [];
     for (const c of enabled) if (!who.includes(c)) return false;
     return true;
   });
@@ -27,11 +41,11 @@ export type CountryAgg = { iso3: string; count: number; days: number };
 export function aggregateByCountry(trips: Trip[]): Map<string, CountryAgg> {
   const m = new Map<string, CountryAgg>();
   for (const t of trips) {
-    if (!t.land_iso3) continue;
-    const a = m.get(t.land_iso3) ?? { iso3: t.land_iso3, count: 0, days: 0 };
+    if (!t.country_iso3) continue;
+    const a = m.get(t.country_iso3) ?? { iso3: t.country_iso3, count: 0, days: 0 };
     a.count += 1;
-    a.days += t.tage ?? 0;
-    m.set(t.land_iso3, a);
+    a.days += t.days ?? 0;
+    m.set(t.country_iso3, a);
   }
   return m;
 }
@@ -46,13 +60,13 @@ export type Stop = { iata: string; lat: number; lon: number };
 
 /** Intermediate stops of a multi-leg flight (Gabelflug), in order. */
 export function tripStops(t: Trip): Stop[] {
-  const s = t.flug_stops as unknown;
+  const s = t.flight_stops as unknown;
   return Array.isArray(s) ? (s as Stop[]) : [];
 }
 
 /** Number of flight legs: a flight with k stops counts as k+1 flights. */
 export function flightLegs(t: Trip): number {
-  return t.anreise === "Flugzeug" ? tripStops(t).length + 1 : 0;
+  return t.travel_mode === "plane" ? tripStops(t).length + 1 : 0;
 }
 
 /** Total flight legs across trips (each leg of a Gabelflug counts). */
@@ -62,12 +76,12 @@ export function totalFlights(trips: Trip[]): number {
 
 /** The full waypoint path of a flight: departure → stops → destination. */
 function flightPath(t: Trip): [number, number][] | null {
-  if (t.anreise !== "Flugzeug") return null;
-  if (t.abflug_lat == null || t.abflug_lon == null) return null;
-  const destLat = t.ziel_lat ?? t.lat;
-  const destLon = t.ziel_lon ?? t.lon;
+  if (t.travel_mode !== "plane") return null;
+  if (t.departure_lat == null || t.departure_lon == null) return null;
+  const destLat = t.arrival_lat ?? t.lat;
+  const destLon = t.arrival_lon ?? t.lon;
   if (destLat == null || destLon == null) return null;
-  const pts: [number, number][] = [[t.abflug_lon, t.abflug_lat]];
+  const pts: [number, number][] = [[t.departure_lon, t.departure_lat]];
   for (const s of tripStops(t)) {
     if (s.lat != null && s.lon != null) pts.push([s.lon, s.lat]);
   }
@@ -91,7 +105,7 @@ export function flightArcs(trips: Trip[]): Arc[] {
 export function flightStopPoints(trips: Trip[]): [number, number][] {
   const pts: [number, number][] = [];
   for (const t of trips) {
-    if (t.anreise !== "Flugzeug" || t.abflug_lat == null) continue;
+    if (t.travel_mode !== "plane" || t.departure_lat == null) continue;
     for (const s of tripStops(t)) if (s.lat != null && s.lon != null) pts.push([s.lon, s.lat]);
   }
   return pts;
@@ -106,12 +120,12 @@ export function destinations(trips: Trip[]): Destination[] {
     .map((t) => ({ trip: t, coord: [t.lon as number, t.lat as number] }));
 }
 
-export const yearOf = (t: Trip) => (t.datum_start ? Number(t.datum_start.slice(0, 4)) : null);
+export const yearOf = (t: Trip) => (t.start_date ? Number(t.start_date.slice(0, 4)) : null);
 
 /** A trip whose start date is in the future is "planned". */
 export function isUpcoming(t: Trip): boolean {
-  if (!t.datum_start) return false;
-  return t.datum_start > new Date().toISOString().slice(0, 10);
+  if (!t.start_date) return false;
+  return t.start_date > new Date().toISOString().slice(0, 10);
 }
 
 /** Whole days from today until a date (negative if past). */
@@ -123,9 +137,9 @@ export function daysUntil(date: string): number {
 }
 
 /** Days are inclusive (nights + 1). */
-export function computeTage(start?: string | null, ende?: string | null): number | null {
-  if (!start || !ende) return null;
-  const ms = Date.parse(ende) - Date.parse(start);
+export function computeDays(start?: string | null, end?: string | null): number | null {
+  if (!start || !end) return null;
+  const ms = Date.parse(end) - Date.parse(start);
   if (Number.isNaN(ms)) return null;
   return Math.round(ms / 86_400_000) + 1;
 }

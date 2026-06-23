@@ -22,11 +22,11 @@ const STEP_MS = 4200;
 
 function buildCards(trips: Trip[], home: Home, scopeLabel: string): Card[] {
   const count = trips.length;
-  const days = trips.reduce((s, t) => s + (t.tage ?? 0), 0);
+  const days = trips.reduce((s, t) => s + (t.days ?? 0), 0);
   const ov = overviewStats(trips, home);
   const flights = totalFlights(trips);
   const km = Math.round(totalFlightKm(trips));
-  const longest = trips.reduce<Trip | null>((m, t) => ((t.tage ?? 0) > (m?.tage ?? -1) ? t : m), null);
+  const longest = trips.reduce<Trip | null>((m, t) => ((t.days ?? 0) > (m?.days ?? -1) ? t : m), null);
   const top = ov.topCountries[0];
 
   const raw: Omit<Card, "bg">[] = [
@@ -41,21 +41,21 @@ function buildCards(trips: Trip[], home: Home, scopeLabel: string): Card[] {
     { emoji: "📅", big: `${days}`, label: "Tage unterwegs" },
     {
       emoji: "📍",
-      big: ov.farthest ? ov.farthest.ort : "–",
+      big: ov.farthest ? ov.farthest.place : "–",
       label: "Weitester Ort",
       sub: ov.farthest ? `${ov.farthest.km.toLocaleString("de")} km ab ${ov.homeLabel}` : undefined,
     },
     {
       emoji: "🏆",
-      big: top ? top.land : "–",
+      big: top ? top.country : "–",
       label: "Meistbesuchtes Land",
       sub: top ? `${top.trips}× besucht` : undefined,
     },
     {
       emoji: "🏖️",
-      big: longest ? `${longest.tage} Tage` : "–",
+      big: longest ? `${longest.days} Tage` : "–",
       label: "Längster Aufenthalt am Stück",
-      sub: longest?.ort ?? undefined,
+      sub: longest?.place ?? undefined,
     },
     {
       emoji: "✈️",

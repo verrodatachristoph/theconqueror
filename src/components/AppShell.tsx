@@ -42,7 +42,7 @@ export default function AppShell({
   const [onlyMissingAirport, setOnlyMissingAirport] = useState(false);
   const [showArcs, setShowArcs] = useState(true);
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<"date" | "days" | "land">("date");
+  const [sort, setSort] = useState<"date" | "days" | "country">("date");
   const [focused, setFocused] = useState<string | null>(null);
   const [editing, setEditing] = useState<TripWithMedia | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -60,35 +60,35 @@ export default function AppShell({
   const listTrips = useMemo(
     () =>
       onlyMissingAirport
-        ? byPerson.filter((t) => t.anreise === "Flugzeug" && !t.abflug_iata)
+        ? byPerson.filter((t) => t.travel_mode === "plane" && !t.departure_iata)
         : byPerson,
     [byPerson, onlyMissingAirport],
   );
   const missingCount = useMemo(
-    () => trips.filter((t) => t.anreise === "Flugzeug" && !t.abflug_iata).length,
+    () => trips.filter((t) => t.travel_mode === "plane" && !t.departure_iata).length,
     [trips],
   );
   const focusedTrips = useMemo(
-    () => (focused ? byPerson.filter((t) => t.land_iso3 === focused) : []),
+    () => (focused ? byPerson.filter((t) => t.country_iso3 === focused) : []),
     [byPerson, focused],
   );
 
   const nextTrip = useMemo(() => {
     const up = byPerson
       .filter(isUpcoming)
-      .sort((a, b) => (a.datum_start ?? "").localeCompare(b.datum_start ?? ""));
+      .sort((a, b) => (a.start_date ?? "").localeCompare(b.start_date ?? ""));
     return up[0] ?? null;
   }, [byPerson]);
 
   const visibleList = useMemo(() => {
     const q = query.trim().toLowerCase();
     const arr = q
-      ? listTrips.filter((t) => `${t.ort ?? ""} ${t.land ?? ""}`.toLowerCase().includes(q))
+      ? listTrips.filter((t) => `${t.place ?? ""} ${t.country ?? ""}`.toLowerCase().includes(q))
       : listTrips;
     const sorted = [...arr];
-    if (sort === "date") sorted.sort((a, b) => (b.datum_start ?? "").localeCompare(a.datum_start ?? ""));
-    else if (sort === "days") sorted.sort((a, b) => (b.tage ?? 0) - (a.tage ?? 0));
-    else sorted.sort((a, b) => (a.land ?? "").localeCompare(b.land ?? "", "de"));
+    if (sort === "date") sorted.sort((a, b) => (b.start_date ?? "").localeCompare(a.start_date ?? ""));
+    else if (sort === "days") sorted.sort((a, b) => (b.days ?? 0) - (a.days ?? 0));
+    else sorted.sort((a, b) => (a.country ?? "").localeCompare(b.country ?? "", "de"));
     return sorted;
   }, [listTrips, query, sort]);
 
@@ -144,11 +144,11 @@ export default function AppShell({
               Nächste Reise
             </div>
             <div className="truncate font-semibold text-ink">
-              {nextTrip.ort} {flagEmoji(nextTrip.land_iso3)}
-              {nextTrip.datum_start && (
+              {nextTrip.place} {flagEmoji(nextTrip.country_iso3)}
+              {nextTrip.start_date && (
                 <span className="font-normal text-muted">
                   {" "}
-                  · in {daysUntil(nextTrip.datum_start)} Tagen
+                  · in {daysUntil(nextTrip.start_date)} Tagen
                 </span>
               )}
             </div>
@@ -190,7 +190,7 @@ export default function AppShell({
           <div className="absolute left-5 top-5 z-10 hidden max-h-[70%] w-64 flex-col overflow-hidden rounded-xl border border-line bg-surface/95 shadow-lg backdrop-blur sm:flex">
             <div className="flex items-center justify-between gap-2 border-b border-line px-3 py-2">
               <span className="truncate text-sm font-semibold">
-                {flagEmoji(focused)} {focusedTrips[0]?.land ?? focused}
+                {flagEmoji(focused)} {focusedTrips[0]?.country ?? focused}
                 <span className="ml-1 font-normal text-muted">({focusedTrips.length})</span>
               </span>
               <button
@@ -208,7 +208,7 @@ export default function AppShell({
                     onClick={() => openDetail(t)}
                     className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-surface-2"
                   >
-                    <span className="truncate">{t.ort}</span>
+                    <span className="truncate">{t.place}</span>
                     <span className="ml-auto shrink-0 text-xs text-muted">{yearOf(t) ?? ""}</span>
                   </button>
                 </li>
@@ -223,7 +223,7 @@ export default function AppShell({
         <Reveal as="section" className="mb-6 rounded-2xl border border-line bg-surface p-4 shadow-sm sm:hidden">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="text-lg font-semibold">
-              {flagEmoji(focused)} {focusedTrips[0]?.land ?? focused}{" "}
+              {flagEmoji(focused)} {focusedTrips[0]?.country ?? focused}{" "}
               <span className="text-sm font-normal text-muted">({focusedTrips.length})</span>
             </h2>
             <button
@@ -262,7 +262,7 @@ export default function AppShell({
           >
             <option value="date">Neueste zuerst</option>
             <option value="days">Längste zuerst</option>
-            <option value="land">Land A–Z</option>
+            <option value="country">Land A–Z</option>
           </select>
           <button
             onClick={() => setOnlyMissingAirport((v) => !v)}

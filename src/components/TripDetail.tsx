@@ -5,10 +5,8 @@ import { motion } from "framer-motion";
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia, SignedPhoto } from "@/lib/data";
 import { fetchTripPhotos } from "@/app/actions";
-import { personColor, yearOf } from "@/lib/trips";
+import { personColor, yearOf, TRAVEL_MODE_ICON, TRAVEL_MODE_LABEL } from "@/lib/trips";
 import { flagEmoji } from "@/lib/iso";
-
-const ANREISE_ICON: Record<string, string> = { Auto: "🚗", Flugzeug: "✈️", Zug: "🚆" };
 
 function fmt(d: string | null) {
   if (!d) return "";
@@ -44,14 +42,14 @@ export default function TripDetail({
     return () => window.removeEventListener("keydown", onKey);
   }, [lightbox, onClose]);
 
-  const who = persons.filter((p) => trip.wer_von_uns?.includes(p.code));
-  const isFlight = trip.anreise === "Flugzeug";
+  const who = persons.filter((p) => trip.travelers?.includes(p.code));
+  const isFlight = trip.travel_mode === "plane";
   const routeNodes =
-    isFlight && trip.abflug_iata
+    isFlight && trip.departure_iata
       ? [
-          trip.abflug_iata,
-          ...(trip.flug_stops ?? []).map((s) => s.iata),
-          trip.ziel_iata ?? trip.ort ?? "",
+          trip.departure_iata,
+          ...(trip.flight_stops ?? []).map((s) => s.iata),
+          trip.arrival_iata ?? trip.place ?? "",
         ].filter(Boolean)
       : [];
 
@@ -77,7 +75,7 @@ export default function TripDetail({
             <img src={trip.cover_signed} alt="" className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-5xl opacity-40">
-              {ANREISE_ICON[trip.anreise ?? ""] ?? "📍"}
+              {TRAVEL_MODE_ICON[trip.travel_mode ?? ""] ?? "📍"}
             </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-ink/55 to-transparent" />
@@ -89,9 +87,9 @@ export default function TripDetail({
             ✕
           </button>
           <div className="absolute bottom-3 left-4 right-4 text-white">
-            <h2 className="text-2xl font-semibold leading-tight drop-shadow">{trip.ort}</h2>
+            <h2 className="text-2xl font-semibold leading-tight drop-shadow">{trip.place}</h2>
             <p className="text-sm opacity-90 drop-shadow">
-              {flagEmoji(trip.land_iso3)} {trip.land}
+              {flagEmoji(trip.country_iso3)} {trip.country}
             </p>
           </div>
         </div>
@@ -99,13 +97,13 @@ export default function TripDetail({
         <div className="space-y-5 p-5">
           {/* Meta */}
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <Meta label="Zeitraum" value={`${fmt(trip.datum_start)} – ${fmt(trip.datum_ende)}`} />
-            <Meta label="Dauer" value={`${trip.tage ?? "?"} Tage`} />
+            <Meta label="Zeitraum" value={`${fmt(trip.start_date)} – ${fmt(trip.end_date)}`} />
+            <Meta label="Dauer" value={`${trip.days ?? "?"} Tage`} />
             <Meta
               label="Anreise"
-              value={`${ANREISE_ICON[trip.anreise ?? ""] ?? ""} ${trip.anreise ?? "—"}`}
+              value={`${TRAVEL_MODE_ICON[trip.travel_mode ?? ""] ?? ""} ${TRAVEL_MODE_LABEL[trip.travel_mode ?? ""] ?? "—"}`}
             />
-            <Meta label="Art" value={trip.art ?? "—"} />
+            <Meta label="Art" value={trip.category ?? "—"} />
           </div>
 
           {routeNodes.length >= 2 && (
@@ -135,18 +133,18 @@ export default function TripDetail({
                   {p.name}
                 </span>
               ))}
-              {trip.wer_sonst && (
+              {trip.other_travelers && (
                 <span className="flex items-center rounded-full border border-line px-2.5 py-1 text-sm text-muted">
-                  + {trip.wer_sonst}
+                  + {trip.other_travelers}
                 </span>
               )}
             </div>
           </div>
 
-          {trip.kommentar && (
+          {trip.comment && (
             <div>
               <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted">Kommentar</div>
-              <p className="whitespace-pre-wrap text-sm text-ink/90">{trip.kommentar}</p>
+              <p className="whitespace-pre-wrap text-sm text-ink/90">{trip.comment}</p>
             </div>
           )}
 

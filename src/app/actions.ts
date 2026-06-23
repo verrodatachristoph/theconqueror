@@ -4,24 +4,24 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { toIso3 } from "@/lib/iso";
 import { geocode } from "@/lib/geocode";
-import { computeTage } from "@/lib/trips";
+import { computeDays } from "@/lib/trips";
 import { getTripPhotos, type SignedPhoto } from "@/lib/data";
-import type { Anreise } from "@/types/database.types";
+import type { TravelMode } from "@/types/database.types";
 
 export type TripInput = {
   id?: string;
-  ort: string;
-  land: string;
-  art: string | null;
-  anreise: Anreise | null;
-  abflug_iata: string | null;
-  ziel_iata: string | null;
+  place: string;
+  country: string;
+  category: string | null;
+  travel_mode: TravelMode | null;
+  departure_iata: string | null;
+  arrival_iata: string | null;
   stops: string[]; // ordered intermediate stop IATA codes (Gabelflug)
-  datum_start: string | null;
-  datum_ende: string | null;
-  wer_von_uns: string[];
-  wer_sonst: string | null;
-  kommentar: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  travelers: string[];
+  other_travelers: string | null;
+  comment: string | null;
 };
 
 const BUCKET = "trip-photos";
@@ -50,28 +50,28 @@ async function resolveAirport(
 
 export async function saveTrip(input: TripInput): Promise<{ id: string }> {
   const supabase = createAdminClient();
-  const land_iso3 = toIso3(input.land);
-  const tage = computeTage(input.datum_start, input.datum_ende);
-  const isFlight = input.anreise === "Flugzeug";
+  const country_iso3 = toIso3(input.country);
+  const days = computeDays(input.start_date, input.end_date);
+  const isFlight = input.travel_mode === "plane";
 
-  // Reuse existing destination coords unless ort/land changed (preserve manual edits)
+  // Reuse existing destination coords unless place/country changed (preserve manual edits)
   let lat: number | null = null;
   let lon: number | null = null;
-  let existing: { ort: string | null; land: string | null; lat: number | null; lon: number | null } | null =
+  let existing: { place: string | null; country: string | null; lat: number | null; lon: number | null } | null =
     null;
   if (input.id) {
     const { data } = await supabase
       .from("trips")
-      .select("ort, land, lat, lon")
+      .select("place, country, lat, lon")
       .eq("id", input.id)
       .maybeSingle();
     existing = data;
   }
-  if (existing && existing.ort === input.ort && existing.land === input.land && existing.lat != null) {
+  if (existing && existing.place === input.place && existing.country === input.country && existing.lat != null) {
     lat = Number(existing.lat);
     lon = Number(existing.lon);
-  } else if (input.ort || input.land) {
-    const geo = await geocode(input.ort, input.land);
+  } else if (input.place || input.country) {
+    const geo = await geocode(input.place, input.country);
     if (geo) {
       lat = geo.lat;
       lon = geo.lon;
@@ -79,63 +79,63 @@ export async function saveTrip(input: TripInput): Promise<{ id: string }> {
   }
 
   // Departure airport coords (flights only)
-  let abflug_iata: string | null = null;
-  let abflug_lat: number | null = null;
-  let abflug_lon: number | null = null;
-  if (isFlight && input.abflug_iata?.trim()) {
-    abflug_iata = input.abflug_iata.trim().toUpperCase();
-    const ap = await resolveAirport(supabase, abflug_iata);
+  let departure_iata: string | null = null;
+  let departure_lat: number | null = null;
+  let departure_lon: number | null = null;
+  if (isFlight && input.departure_iata?.trim()) {
+    departure_iata = input.departure_iata.trim().toUpperCase();
+    const ap = await resolveAirport(supabase, departure_iata);
     if (ap) {
-      abflug_lat = ap.lat;
-      abflug_lon = ap.lon;
+      departure_lat = ap.lat;
+      departure_lon = ap.lon;
     }
   }
 
   // Optional destination airport coords (flights only); else arc ends at the Ort
-  let ziel_iata: string | null = null;
-  let ziel_lat: number | null = null;
-  let ziel_lon: number | null = null;
-  if (isFlight && input.ziel_iata?.trim()) {
-    ziel_iata = input.ziel_iata.trim().toUpperCase();
-    const ap = await resolveAirport(supabase, ziel_iata);
+  let arrival_iata: string | null = null;
+  let arrival_lat: number | null = null;
+  let arrival_lon: number | null = null;
+  if (isFlight && input.arrival_iata?.trim()) {
+    arrival_iata = input.arrival_iata.trim().toUpperCase();
+    const ap = await resolveAirport(supabase, arrival_iata);
     if (ap) {
-      ziel_lat = ap.lat;
-      ziel_lon = ap.lon;
+      arrival_lat = ap.lat;
+      arrival_lon = ap.lon;
     }
   }
 
   // Multi-leg stops (Gabelflug): resolve each IATA to coordinates, keep order
-  const flug_stops: { iata: string; lat: number; lon: number }[] = [];
+  const flight_stops: { iata: string; lat: number; lon: number }[] = [];
   if (isFlight) {
     for (const raw of input.stops) {
       const code = raw.trim().toUpperCase();
       if (!code) continue;
       const ap = await resolveAirport(supabase, code);
-      if (ap) flug_stops.push({ iata: code, lat: ap.lat, lon: ap.lon });
+      if (ap) flight_stops.push({ iata: code, lat: ap.lat, lon: ap.lon });
     }
   }
 
   const row = {
-    ort: input.ort || null,
-    land: input.land || null,
-    land_iso3,
+    place: input.place || null,
+    country: input.country || null,
+    country_iso3,
     lat,
     lon,
-    art: input.art,
-    anreise: input.anreise,
-    abflug_iata,
-    abflug_lat,
-    abflug_lon,
-    ziel_iata,
-    ziel_lat,
-    ziel_lon,
-    flug_stops,
-    datum_start: input.datum_start,
-    datum_ende: input.datum_ende,
-    tage,
-    wer_von_uns: input.wer_von_uns,
-    wer_sonst: input.wer_sonst,
-    kommentar: input.kommentar,
+    category: input.category,
+    travel_mode: input.travel_mode,
+    departure_iata,
+    departure_lat,
+    departure_lon,
+    arrival_iata,
+    arrival_lat,
+    arrival_lon,
+    flight_stops,
+    start_date: input.start_date,
+    end_date: input.end_date,
+    days,
+    travelers: input.travelers,
+    other_travelers: input.other_travelers,
+    comment: input.comment,
   };
 
   let id = input.id;
@@ -178,24 +178,24 @@ export async function searchAirports(q: string): Promise<AirportHit[]> {
   return rows.sort((a, b) => rank(a) - rank(b)).slice(0, 8);
 }
 
-export async function addWish(land: string): Promise<{ ok: boolean; error?: string }> {
-  const name = land.trim();
+export async function addWish(country: string): Promise<{ ok: boolean; error?: string }> {
+  const name = country.trim();
   if (!name) return { ok: false, error: "Land fehlt." };
   const iso3 = toIso3(name);
   if (!iso3) return { ok: false, error: `„${name}" konnte keinem Land zugeordnet werden.` };
   const supabase = createAdminClient();
   const { error } = await supabase
     .from("wishlist")
-    .upsert({ iso3, land: name }, { onConflict: "iso3" });
+    .upsert({ iso3, country: name }, { onConflict: "iso3" });
   if (error) return { ok: false, error: error.message };
-  revalidatePath("/ziele");
+  revalidatePath("/destinations");
   return { ok: true };
 }
 
 export async function removeWish(iso3: string): Promise<void> {
   const supabase = createAdminClient();
   await supabase.from("wishlist").delete().eq("iso3", iso3);
-  revalidatePath("/ziele");
+  revalidatePath("/destinations");
 }
 
 export async function deleteTrip(id: string): Promise<void> {

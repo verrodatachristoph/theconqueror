@@ -3,17 +3,21 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/auth-actions";
+import { useT } from "@/components/i18n/LanguageProvider";
+import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const LINKS = [
-  { href: "/", label: "Karte", match: undefined as string | undefined },
-  { href: "/tagebuch", label: "Tagebuch", match: undefined },
-  { href: "/statistik", label: "Statistik", match: undefined },
-  { href: "/profil", label: "Profile", match: "/profil" },
-  { href: "/ziele", label: "Ziele", match: undefined },
+  { href: "/", key: "nav.map", match: undefined as string | undefined },
+  { href: "/diary", key: "nav.diary", match: undefined },
+  { href: "/statistics", key: "nav.statistics", match: undefined },
+  { href: "/profile", key: "nav.profiles", match: "/profile" },
+  { href: "/destinations", key: "nav.destinations", match: undefined },
 ];
 
 export default function TopNav({ children }: { children?: React.ReactNode }) {
   const pathname = usePathname();
+  const t = useT();
   const isActive = (href: string, match?: string) => (match ? pathname.startsWith(match) : pathname === href);
 
   return (
@@ -33,7 +37,7 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
                   active ? "bg-ink text-surface" : "text-muted hover:text-ink"
                 }`}
               >
-                {l.label}
+                {t(l.key)}
               </Link>
             );
           })}
@@ -42,10 +46,12 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
 
       <div className="flex shrink-0 items-center gap-2">
         {children}
+        <LanguageSwitcher />
+        <ThemeToggle />
         <Link
           href="/admin"
-          title="Admin"
-          aria-label="Admin"
+          title={t("nav.admin")}
+          aria-label={t("nav.admin")}
           className={`flex h-9 w-9 items-center justify-center rounded-full border text-base transition-colors ${
             pathname.startsWith("/admin")
               ? "border-ink bg-ink text-surface"
@@ -57,9 +63,9 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
         <button
           onClick={() => logout()}
           className="rounded-full border border-line px-3 py-2 text-sm text-muted transition-colors hover:text-ink"
-          title="Abmelden"
+          title={t("nav.logout")}
         >
-          Abmelden
+          {t("nav.logout")}
         </button>
       </div>
     </header>

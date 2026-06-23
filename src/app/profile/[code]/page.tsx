@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getTrips, getPersons } from "@/lib/data";
 import { getPublicSettings, homeFrom } from "@/lib/settings";
-import ProfilPage from "@/components/ProfilPage";
+import ProfilePage from "@/components/ProfilePage";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +11,7 @@ export default async function Profil({ params }: { params: Promise<{ code: strin
   const person = persons.find((p) => p.code.toLowerCase() === code.toLowerCase());
   if (!person) notFound();
   return (
-    <ProfilPage
+    <ProfilePage
       person={person}
       persons={persons}
       trips={trips}

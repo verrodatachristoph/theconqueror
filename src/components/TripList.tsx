@@ -2,11 +2,9 @@
 
 import type { Person } from "@/types/database.types";
 import type { TripWithMedia } from "@/lib/data";
-import { personColor, yearOf, isUpcoming } from "@/lib/trips";
+import { personColor, yearOf, isUpcoming, TRAVEL_MODE_ICON, TRAVEL_MODE_LABEL } from "@/lib/trips";
 import { flagEmoji } from "@/lib/iso";
 import EmptyState from "@/components/EmptyState";
-
-const ANREISE_ICON: Record<string, string> = { Auto: "🚗", Flugzeug: "✈️", Zug: "🚆" };
 
 export default function TripList({
   trips,
@@ -27,7 +25,7 @@ export default function TripList({
   return (
     <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
       {trips.map((t) => {
-        const needsAirport = t.anreise === "Flugzeug" && !t.abflug_iata;
+        const needsAirport = t.travel_mode === "plane" && !t.departure_iata;
         return (
           <li key={t.id}>
             <button
@@ -40,16 +38,16 @@ export default function TripList({
                   <img src={t.cover_signed} alt="" className="h-full w-full object-cover" />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-base opacity-60">
-                    {ANREISE_ICON[t.anreise ?? ""] ?? "📍"}
+                    {TRAVEL_MODE_ICON[t.travel_mode ?? ""] ?? "📍"}
                   </div>
                 )}
               </div>
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <span className="truncate font-medium text-ink">{t.ort}</span>
+                  <span className="truncate font-medium text-ink">{t.place}</span>
                   <span className="shrink-0 text-xs text-muted">
-                    {flagEmoji(t.land_iso3)} {t.land}
+                    {flagEmoji(t.country_iso3)} {t.country}
                   </span>
                   {isUpcoming(t) && (
                     <span
@@ -69,15 +67,15 @@ export default function TripList({
                   <span>{yearOf(t) ?? "—"}</span>
                   <span>·</span>
                   <span>
-                    {ANREISE_ICON[t.anreise ?? ""] ?? ""} {t.anreise ?? "—"}
+                    {TRAVEL_MODE_ICON[t.travel_mode ?? ""] ?? ""} {TRAVEL_MODE_LABEL[t.travel_mode ?? ""] ?? "—"}
                   </span>
                   <span>·</span>
-                  <span>{t.tage ?? "?"} T</span>
+                  <span>{t.days ?? "?"} T</span>
                 </div>
               </div>
 
               <div className="flex shrink-0 -space-x-1">
-                {(t.wer_von_uns ?? []).map((c) => (
+                {(t.travelers ?? []).map((c) => (
                   <span
                     key={c}
                     title={nameByCode.get(c) ?? c}

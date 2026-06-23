@@ -21,7 +21,7 @@ export async function getTrips(): Promise<TripWithMedia[]> {
   const { data, error } = await supabase
     .from("trips")
     .select("*")
-    .order("datum_start", { ascending: false });
+    .order("start_date", { ascending: false });
   if (error) throw error;
   const trips = data ?? [];
 
@@ -53,11 +53,11 @@ export async function getAirports(): Promise<Airport[]> {
   return data ?? [];
 }
 
-export type Wish = { iso3: string; land: string; created_at: string };
+export type Wish = { iso3: string; country: string; created_at: string };
 
 export async function getWishlist(): Promise<Wish[]> {
   const supabase = createAdminClient();
-  const { data, error } = await supabase.from("wishlist").select("*").order("land");
+  const { data, error } = await supabase.from("wishlist").select("*").order("country");
   if (error) throw error;
   return data ?? [];
 }
@@ -66,7 +66,7 @@ export type AchievementDef = {
   id: string;
   icon: string;
   title: string;
-  descr: string;
+  description: string;
   metric: string;
   target: number;
   sort: number;

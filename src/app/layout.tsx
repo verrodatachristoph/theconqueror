@@ -1,7 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies } from "next/headers";
 import "./globals.css";
 import Providers from "@/components/Providers";
+import Footer from "@/components/Footer";
+import { getLocale } from "@/lib/i18n/server";
+import { THEME_COOKIE, isTheme } from "@/lib/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,6 +26,14 @@ export const metadata: Metadata = {
   title: "The Conqueror",
   description: "Wo die Familie schon überall war.",
   manifest: "/manifest.webmanifest",
+  icons: {
+    icon: [
+      { url: "/favicon-light.svg", type: "image/svg+xml", media: "(prefers-color-scheme: light)" },
+      { url: "/favicon-dark.svg", type: "image/svg+xml", media: "(prefers-color-scheme: dark)" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/apple-icon",
+  },
   appleWebApp: { capable: true, title: "The Conqueror", statusBarStyle: "default" },
   openGraph: {
     title: "The Conqueror",
@@ -42,18 +54,26 @@ export const viewport: Viewport = {
   themeColor: "#f4f0e9",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const store = await cookies();
+  const themeCookie = store.get(THEME_COOKIE)?.value;
+  const isDark = isTheme(themeCookie) && themeCookie === "dark";
+
   return (
     <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      lang={locale}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased${isDark ? " dark" : ""}`}
     >
       <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
+        <Providers locale={locale}>
+          <div className="flex-1">{children}</div>
+          <Footer />
+        </Providers>
       </body>
     </html>
   );

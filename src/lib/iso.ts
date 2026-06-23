@@ -27,11 +27,11 @@ const ISO_OVERRIDES: Record<string, string> = {
 };
 
 /** German (or English) country name -> ISO 3166-1 alpha-3, or null. */
-export function toIso3(land: string | null | undefined): string | null {
-  if (!land) return null;
-  const key = land.toLowerCase().trim();
+export function toIso3(country: string | null | undefined): string | null {
+  if (!country) return null;
+  const key = country.toLowerCase().trim();
   if (ISO_OVERRIDES[key]) return ISO_OVERRIDES[key];
-  const a2 = countries.getAlpha2Code(land, "de") || countries.getAlpha2Code(land, "en");
+  const a2 = countries.getAlpha2Code(country, "de") || countries.getAlpha2Code(country, "en");
   return a2 ? (countries.alpha2ToAlpha3(a2) ?? null) : null;
 }
 

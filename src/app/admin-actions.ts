@@ -12,24 +12,24 @@ function revalidateAll() {
 }
 
 // ── Persons ────────────────────────────────────────────────────────────────
-export async function createPerson(code: string, name: string, farbe: string): Promise<Result> {
+export async function createPerson(code: string, name: string, color: string): Promise<Result> {
   const c = code.trim().toUpperCase();
   if (!c) return { ok: false, error: "Kürzel fehlt." };
   if (!name.trim()) return { ok: false, error: "Name fehlt." };
   const supabase = createAdminClient();
   const { data: existing } = await supabase.from("persons").select("code").eq("code", c).maybeSingle();
   if (existing) return { ok: false, error: `Kürzel „${c}" existiert bereits.` };
-  const { error } = await supabase.from("persons").insert({ code: c, name: name.trim(), farbe });
+  const { error } = await supabase.from("persons").insert({ code: c, name: name.trim(), color });
   if (error) return { ok: false, error: error.message };
   revalidateAll();
   return { ok: true };
 }
 
-export async function updatePerson(code: string, name: string, farbe: string): Promise<Result> {
+export async function updatePerson(code: string, name: string, color: string): Promise<Result> {
   const supabase = createAdminClient();
   const { error } = await supabase
     .from("persons")
-    .update({ name: name.trim(), farbe })
+    .update({ name: name.trim(), color })
     .eq("code", code);
   if (error) return { ok: false, error: error.message };
   revalidateAll();
@@ -41,12 +41,12 @@ export async function deletePerson(code: string): Promise<Result> {
   // strip the code from any trips that reference it
   const { data: affected } = await supabase
     .from("trips")
-    .select("id, wer_von_uns")
-    .contains("wer_von_uns", [code]);
+    .select("id, travelers")
+    .contains("travelers", [code]);
   for (const t of affected ?? []) {
     await supabase
       .from("trips")
-      .update({ wer_von_uns: (t.wer_von_uns ?? []).filter((c) => c !== code) })
+      .update({ travelers: (t.travelers ?? []).filter((c) => c !== code) })
       .eq("id", t.id);
   }
   const { error } = await supabase.from("persons").delete().eq("code", code);
@@ -103,7 +103,7 @@ export async function saveAchievement(def: {
   id: string;
   icon: string;
   title: string;
-  descr: string;
+  description: string;
   metric: string;
   target: number;
   sort: number;

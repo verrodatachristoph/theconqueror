@@ -30,7 +30,7 @@ import StatTile from "@/components/StatTile";
 import Wrapped from "@/components/Wrapped";
 import { Stagger } from "@/components/motion";
 
-export default function StatistikPage({
+export default function StatisticsPage({
   trips,
   persons,
   home,
@@ -132,17 +132,17 @@ export default function StatistikPage({
           />
           <HiTile
             label="Weitester Ort"
-            value={ov.farthest ? ov.farthest.ort : "–"}
+            value={ov.farthest ? ov.farthest.place : "–"}
             sub={ov.farthest ? `${ov.farthest.km.toLocaleString("de")} km ab ${ov.homeLabel}` : undefined}
           />
           <HiTile
             label="Meiste Tage (Land)"
-            value={ds.topDaysCountries[0]?.land ?? "–"}
+            value={ds.topDaysCountries[0]?.country ?? "–"}
             sub={ds.topDaysCountries[0] ? `${ds.topDaysCountries[0].days} Tage gesamt` : undefined}
           />
           <HiTile
             label="Meiste Tage (Ort)"
-            value={ds.topDaysPlaces[0]?.ort ?? "–"}
+            value={ds.topDaysPlaces[0]?.place ?? "–"}
             sub={ds.topDaysPlaces[0] ? `${ds.topDaysPlaces[0].days} Tage gesamt` : undefined}
           />
         </Stagger>
@@ -169,9 +169,9 @@ export default function StatistikPage({
           <h3 className="mb-3 text-sm font-medium text-ink">Top Länder</h3>
           <ul className="space-y-2.5">
             {ov.topCountries.map((c, i) => (
-              <li key={c.land} className="flex items-center gap-3">
+              <li key={c.country} className="flex items-center gap-3">
                 <span className="w-4 text-sm font-semibold tabular-nums text-muted">{i + 1}</span>
-                <span className="w-28 shrink-0 truncate text-sm text-ink">{c.land}</span>
+                <span className="w-28 shrink-0 truncate text-sm text-ink">{c.country}</span>
                 <span className="h-2.5 flex-1 overflow-hidden rounded-full bg-surface-2">
                   <span
                     className="block h-full rounded-full bg-accent"
@@ -216,13 +216,13 @@ export default function StatistikPage({
           <div className="rounded-2xl border border-line bg-surface p-4">
             <h3 className="mb-3 text-sm font-medium text-ink">Anreiseart über die Jahre</h3>
             <ResponsiveContainer width="100%" height={190}>
-              <BarChart data={ds.anreiseByYear} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+              <BarChart data={ds.travelModeByYear} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <XAxis dataKey="year" tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
                 <Tooltip cursor={{ fill: "var(--color-surface-2)" }} contentStyle={{ borderRadius: 12, border: "1px solid var(--color-line)", fontSize: 12 }} />
-                <Bar dataKey="Auto" stackId="a" fill="var(--color-accent)" />
-                <Bar dataKey="Flugzeug" stackId="a" fill="var(--color-arc)" />
-                <Bar dataKey="Zug" stackId="a" fill="#7d8c54" />
+                <Bar dataKey="car" stackId="a" fill="var(--color-accent)" />
+                <Bar dataKey="plane" stackId="a" fill="var(--color-arc)" />
+                <Bar dataKey="train" stackId="a" fill="#7d8c54" />
               </BarChart>
             </ResponsiveContainer>
             <div className="mt-2 flex justify-center gap-4 text-xs text-muted">
@@ -237,11 +237,11 @@ export default function StatistikPage({
           </Card>
 
           <Card title="Top-Orte">
-            <RankList rows={ds.topPlaces.map((p) => ({ label: p.ort, value: p.trips, right: `${p.trips} Reisen · ${p.days} T` }))} />
+            <RankList rows={ds.topPlaces.map((p) => ({ label: p.place, value: p.trips, right: `${p.trips} Reisen · ${p.days} T` }))} />
           </Card>
 
           <Card title="Meiste Tage – Länder">
-            <RankList rows={ds.topDaysCountries.map((c) => ({ label: c.land, value: c.days, right: `${c.days} Tage` }))} />
+            <RankList rows={ds.topDaysCountries.map((c) => ({ label: c.country, value: c.days, right: `${c.days} Tage` }))} />
           </Card>
 
           <div className="flex flex-col justify-center rounded-2xl border border-line bg-surface p-4">
@@ -280,7 +280,7 @@ export default function StatistikPage({
           <Row label="Länder" a={h2h.a.countries} b={h2h.b.countries} />
           <Row label="Tage gesamt" a={h2h.a.days} b={h2h.b.days} />
           <Row label="Flüge" a={h2h.a.flights} b={h2h.b.flights} />
-          <Row label="Längster Aufenthalt am Stück" a={h2h.a.longest?.tage ?? 0} b={h2h.b.longest?.tage ?? 0} unit=" T" />
+          <Row label="Längster Aufenthalt am Stück" a={h2h.a.longest?.days ?? 0} b={h2h.b.longest?.days ?? 0} unit=" T" />
           <Row label="Erste Reise" a={h2h.a.firstYear ?? 0} b={h2h.b.firstYear ?? 0} compare={false} />
           <Row label="Letzte Reise" a={h2h.a.lastYear ?? 0} b={h2h.b.lastYear ?? 0} compare={false} />
           <TextRow
@@ -473,7 +473,7 @@ function CompareChart({
   const rows = data.map((d) => ({
     name: d.person.name,
     code: d.person.code,
-    color: d.person.farbe,
+    color: d.person.color,
     value: pick(d.s),
   }));
   return (

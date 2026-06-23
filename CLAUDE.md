@@ -12,12 +12,14 @@ travel diary, and an admin area. Data lives in Supabase; trips are added via the
 - Charts: Recharts · Data/Storage: Supabase (Postgres + Storage) · Deploy: Vercel
 
 ## Data model (Supabase)
-- `trips` — stays. `aera`, `ort`, `land`/`land_iso3`, `lat`/`lon` (destination),
-  `anreise` (Auto|Flugzeug|Zug), `abflug_*` (departure airport, flights only),
-  `ziel_*` (optional destination airport), `datum_*`, `tage` (computed),
-  `wer_von_uns` text[] (person codes), `wer_sonst`, `kommentar`, `cover_photo_url`,
-  `flug_stops` (jsonb, multi-leg flights).
-- `persons` — code → name + farbe (colors are DB-driven; managed in /admin).
+- `trips` — stays. `place`, `country`/`country_iso3`, `lat`/`lon` (destination),
+  `category`, `travel_mode` (car|plane|train), `departure_*` (departure airport,
+  flights only), `arrival_*` (optional destination airport), `start_date`/`end_date`,
+  `days` (computed), `travelers` text[] (person codes), `other_travelers`, `comment`,
+  `cover_photo_url`, `flight_stops` (jsonb, multi-leg flights).
+  (The schema is English; older installs are migrated from German column names by
+  `supabase/migrations/…_english_schema.sql`.)
+- `persons` — code → name + color (colors are DB-driven; managed in /admin).
 - `airports`, `trip_photos`, `wishlist`, `geocode_cache`.
 - `app_settings` — single row: home lat/lon/label, default airport, password hash.
 - `achievements` — configurable badges (icon/title/metric/target/enabled).
@@ -32,13 +34,13 @@ checks the password against `app_settings.password_hash` (changeable in /admin),
 falling back to `APP_PASSWORD` env for fresh installs.
 
 ## Key rules
-- A flight **arc** renders only when `anreise = 'Flugzeug'` AND a departure
+- A flight **arc** renders only when `travel_mode = 'plane'` AND a departure
   airport with coords exists (else the country is colored but no arc).
-- `tage` always computed from start/end.
-- Person filter (OR semantics) drives map + stats + list together.
-- LAND German → ISO alpha-3 (`i18n-iso-countries` + overrides). ORT geocoded
-  via Nominatim (1 req/s, cached, country-centroid fallback). Photos >1MB are
-  compressed client-side before upload (`src/lib/image.ts`).
+- `days` always computed from start/end.
+- Person filter (AND semantics) drives map + stats + list together.
+- `country` (German name) → ISO alpha-3 (`i18n-iso-countries` + overrides).
+  `place` geocoded via Nominatim (1 req/s, cached, country-centroid fallback).
+  Photos >1MB are compressed client-side before upload (`src/lib/image.ts`).
 
 ## Config that lives in the DB (not the repo)
 Persons, home location, default airport, family password, achievements — all

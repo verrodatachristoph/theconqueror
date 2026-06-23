@@ -13,7 +13,7 @@ import { useToast } from "@/components/toast";
 const EARTH_KM = 40075;
 const COUNTRY_NAMES = germanCountryNames();
 
-export default function ZielePage({
+export default function DestinationsPage({
   trips,
   persons,
   wishlist,
@@ -29,7 +29,7 @@ export default function ZielePage({
   const router = useRouter();
   const toast = useToast();
   const [pending, startTransition] = useTransition();
-  const [land, setLand] = useState("");
+  const [country, setLand] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const allCodes = useMemo(() => persons.map((p) => p.code), [persons]);
@@ -39,7 +39,7 @@ export default function ZielePage({
   );
   const flightKm = useMemo(() => totalFlightKm(trips), [trips]);
   const visited = useMemo(
-    () => new Set(trips.map((t) => t.land_iso3).filter(Boolean)),
+    () => new Set(trips.map((t) => t.country_iso3).filter(Boolean)),
     [trips],
   );
   const earnedCount = badges.filter((b) => b.earned).length;
@@ -47,7 +47,7 @@ export default function ZielePage({
   async function submitWish(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    const res = await addWish(land);
+    const res = await addWish(country);
     if (!res.ok) {
       setError(res.error ?? "Fehler.");
       return;
@@ -138,7 +138,7 @@ export default function ZielePage({
         <form onSubmit={submitWish} className="mb-4 flex flex-wrap gap-2">
           <input
             list="wish-country-list"
-            value={land}
+            value={country}
             onChange={(e) => setLand(e.target.value)}
             placeholder="Land hinzufügen…"
             className="min-w-[12rem] flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm outline-none focus:border-accent"
@@ -171,7 +171,7 @@ export default function ZielePage({
                     seen ? "border-accent/40 bg-accent-soft/40 text-ink" : "border-line bg-surface text-ink"
                   }`}
                 >
-                  <span>{w.land}</span>
+                  <span>{w.country}</span>
                   {seen && <span className="text-xs text-accent">✓ schon besucht</span>}
                   <button
                     onClick={() => startTransition(async () => { await removeWish(w.iso3); toast("Entfernt"); router.refresh(); })}

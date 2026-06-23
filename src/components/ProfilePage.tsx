@@ -23,7 +23,7 @@ const WorldMap = dynamic(() => import("@/components/WorldMap"), {
   ),
 });
 
-export default function ProfilPage({
+export default function ProfilePage({
   person,
   persons,
   trips,
@@ -96,12 +96,12 @@ export default function ProfilPage({
       <Stagger className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
         <Tile
           label="Längster Aufenthalt am Stück"
-          value={s.longest ? `${s.longest.tage} T` : "–"}
-          sub={s.longest?.ort ?? undefined}
+          value={s.longest ? `${s.longest.days} T` : "–"}
+          sub={s.longest?.place ?? undefined}
         />
         <Tile
           label="Weitester Ort"
-          value={ov.farthest ? ov.farthest.ort : "–"}
+          value={ov.farthest ? ov.farthest.place : "–"}
           sub={ov.farthest ? `${ov.farthest.km.toLocaleString("de")} km` : undefined}
         />
         <Tile
@@ -177,7 +177,7 @@ function PersonMenu({ persons, current }: { persons: Person[]; current: Person }
   const dot = (p: Person) => (
     <span
       className="flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold text-white"
-      style={{ backgroundColor: p.farbe }}
+      style={{ backgroundColor: p.color }}
     >
       {p.code}
     </span>
@@ -207,7 +207,7 @@ function PersonMenu({ persons, current }: { persons: Person[]; current: Person }
           {persons.map((p) => (
             <Link
               key={p.code}
-              href={`/profil/${p.code}`}
+              href={`/profile/${p.code}`}
               onClick={() => setOpen(false)}
               className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm transition-colors hover:bg-surface-2 ${
                 p.code === current.code ? "bg-surface-2 font-medium" : ""

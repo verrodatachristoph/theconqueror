@@ -9,7 +9,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
-export type Anreise = "Auto" | "Flugzeug" | "Zug";
+export type TravelMode = "car" | "plane" | "train";
 export type PersonCode = "C" | "M" | "P" | "N";
 
 export interface Database {
@@ -18,51 +18,51 @@ export interface Database {
       trips: {
         Row: {
           id: string;
-          ort: string | null;
-          land: string | null;
-          land_iso3: string | null;
+          place: string | null;
+          country: string | null;
+          country_iso3: string | null;
           lat: number | null;
           lon: number | null;
-          art: string | null;
-          anreise: Anreise | null;
-          abflug_iata: string | null;
-          abflug_lat: number | null;
-          abflug_lon: number | null;
-          ziel_iata: string | null;
-          ziel_lat: number | null;
-          ziel_lon: number | null;
-          flug_stops: { iata: string; lat: number; lon: number }[];
-          datum_start: string | null;
-          datum_ende: string | null;
-          tage: number | null;
-          wer_von_uns: string[];
-          wer_sonst: string | null;
-          kommentar: string | null;
+          category: string | null;
+          travel_mode: TravelMode | null;
+          departure_iata: string | null;
+          departure_lat: number | null;
+          departure_lon: number | null;
+          arrival_iata: string | null;
+          arrival_lat: number | null;
+          arrival_lon: number | null;
+          flight_stops: { iata: string; lat: number; lon: number }[];
+          start_date: string | null;
+          end_date: string | null;
+          days: number | null;
+          travelers: string[];
+          other_travelers: string | null;
+          comment: string | null;
           cover_photo_url: string | null;
           created_at: string;
         };
         Insert: {
           id?: string;
-          ort?: string | null;
-          land?: string | null;
-          land_iso3?: string | null;
+          place?: string | null;
+          country?: string | null;
+          country_iso3?: string | null;
           lat?: number | null;
           lon?: number | null;
-          art?: string | null;
-          anreise?: Anreise | null;
-          abflug_iata?: string | null;
-          abflug_lat?: number | null;
-          abflug_lon?: number | null;
-          ziel_iata?: string | null;
-          ziel_lat?: number | null;
-          ziel_lon?: number | null;
-          flug_stops?: { iata: string; lat: number; lon: number }[];
-          datum_start?: string | null;
-          datum_ende?: string | null;
-          tage?: number | null;
-          wer_von_uns?: string[];
-          wer_sonst?: string | null;
-          kommentar?: string | null;
+          category?: string | null;
+          travel_mode?: TravelMode | null;
+          departure_iata?: string | null;
+          departure_lat?: number | null;
+          departure_lon?: number | null;
+          arrival_iata?: string | null;
+          arrival_lat?: number | null;
+          arrival_lon?: number | null;
+          flight_stops?: { iata: string; lat: number; lon: number }[];
+          start_date?: string | null;
+          end_date?: string | null;
+          days?: number | null;
+          travelers?: string[];
+          other_travelers?: string | null;
+          comment?: string | null;
           cover_photo_url?: string | null;
           created_at?: string;
         };
@@ -70,9 +70,9 @@ export interface Database {
         Relationships: [];
       };
       persons: {
-        Row: { code: string; name: string; farbe: string };
-        Insert: { code: string; name: string; farbe: string };
-        Update: Partial<{ code: string; name: string; farbe: string }>;
+        Row: { code: string; name: string; color: string };
+        Insert: { code: string; name: string; color: string };
+        Update: Partial<{ code: string; name: string; color: string }>;
         Relationships: [];
       };
       airports: {
@@ -119,9 +119,9 @@ export interface Database {
         Relationships: [];
       };
       wishlist: {
-        Row: { iso3: string; land: string; created_at: string };
-        Insert: { iso3: string; land: string; created_at?: string };
-        Update: Partial<{ iso3: string; land: string; created_at: string }>;
+        Row: { iso3: string; country: string; created_at: string };
+        Insert: { iso3: string; country: string; created_at?: string };
+        Update: Partial<{ iso3: string; country: string; created_at: string }>;
         Relationships: [];
       };
       achievements: {
@@ -129,7 +129,7 @@ export interface Database {
           id: string;
           icon: string;
           title: string;
-          descr: string;
+          description: string;
           metric: string;
           target: number;
           sort: number;
@@ -139,7 +139,7 @@ export interface Database {
           id: string;
           icon: string;
           title: string;
-          descr: string;
+          description: string;
           metric: string;
           target: number;
           sort?: number;
