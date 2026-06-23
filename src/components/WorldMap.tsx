@@ -72,6 +72,7 @@ export default function WorldMap({
   const [k, setK] = useState(1);
   const [hover, setHover] = useState<Hover>(null);
   const [hoveredIso, setHoveredIso] = useState<string | null>(null);
+  const hovId = hover && hover.kind === "dest" ? hover.trip.id : null;
 
   const projection = useMemo(
     () => geoEqualEarth().fitExtent([[6, 6], [W - 6, H - 6]], { type: "Sphere" }),
@@ -303,26 +304,40 @@ export default function WorldMap({
             const p = projection(d.coord);
             if (!p) return null;
             const planned = isUpcoming(d.trip);
+            const isHov = hovId === d.trip.id;
             return (
-              <circle
-                key={`dot-${i}`}
-                cx={p[0]}
-                cy={p[1]}
-                r={(planned ? 3.6 : 2.6) / k}
-                fill={planned ? "none" : "var(--color-arc)"}
-                stroke={planned ? "#6d5bd0" : "var(--color-surface)"}
-                strokeWidth={(planned ? 1.8 : 1) / k}
-                className="cursor-pointer"
-                onPointerMove={(e) =>
-                  moveTip(e, { kind: "dest", trip: d.trip, cover: coverById.get(d.trip.id) } as never)
-                }
-                onPointerLeave={() => setHover(null)}
-                onClick={() => onSelectTrip?.(d.trip)}
-              >
-                {planned && (
-                  <animate attributeName="opacity" values="1;0.35;1" dur="2s" repeatCount="indefinite" />
+              <g key={`dot-${i}`}>
+                {isHov && (
+                  <circle
+                    cx={p[0]}
+                    cy={p[1]}
+                    r={7 / k}
+                    fill="none"
+                    stroke={planned ? "#6d5bd0" : "var(--color-arc)"}
+                    strokeWidth={1.2 / k}
+                    opacity={0.5}
+                    pointerEvents="none"
+                  />
                 )}
-              </circle>
+                <circle
+                  cx={p[0]}
+                  cy={p[1]}
+                  r={((planned ? 3.6 : 2.6) * (isHov ? 1.5 : 1)) / k}
+                  fill={planned ? "none" : "var(--color-arc)"}
+                  stroke={planned ? "#6d5bd0" : "var(--color-surface)"}
+                  strokeWidth={(planned ? 1.8 : 1) / k}
+                  className="cursor-pointer"
+                  onPointerMove={(e) =>
+                    moveTip(e, { kind: "dest", trip: d.trip, cover: coverById.get(d.trip.id) } as never)
+                  }
+                  onPointerLeave={() => setHover(null)}
+                  onClick={() => onSelectTrip?.(d.trip)}
+                >
+                  {planned && (
+                    <animate attributeName="opacity" values="1;0.35;1" dur="2s" repeatCount="indefinite" />
+                  )}
+                </circle>
+              </g>
             );
           })}
         </g>

@@ -98,6 +98,13 @@ select::-ms-expand {
   display: none;
 }
 
+/* Shimmer sweep for skeleton placeholders */
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* The map should feel like a quiet object, not a clickable web element */
 .map-svg {
   touch-action: none;

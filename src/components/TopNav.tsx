@@ -11,9 +11,9 @@ function BrandLockup() {
   return (
     <>
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/theConqueror_logo_dark.png" alt="The Conqueror" className="block h-16 w-auto md:h-20 dark:hidden" />
+      <img src="/theConqueror_logo_dark_trim.png" alt="The Conqueror" className="block h-12 w-auto md:h-14 dark:hidden" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/theConqueror_logo_light.png" alt="The Conqueror" className="hidden h-16 w-auto md:h-20 dark:block" />
+      <img src="/theConqueror_logo_light_trim.png" alt="The Conqueror" className="hidden h-12 w-auto md:h-14 dark:block" />
     </>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import type { Person } from "@/types/database.types";
+import { personColor } from "@/lib/trips";
 import { useT } from "@/components/i18n/LanguageProvider";
 
 export default function PersonFilter({
@@ -30,19 +31,21 @@ export default function PersonFilter({
             onClick={() => onToggle(p.code)}
             aria-pressed={on}
             title={on ? t("filter.removeFromFilter", { name: p.name }) : t("filter.onlyWith", { name: p.name })}
-            className={`flex items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-semibold transition-all ${
-              on
-                ? "border-accent bg-accent text-white shadow-sm"
-                : "border-line bg-surface text-ink hover:border-ink/30"
+            style={on ? { backgroundColor: personColor(persons, p.code) } : undefined}
+            className={`flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold transition-all ${
+              on ? "text-white shadow-sm" : "bg-surface-2 text-ink hover:bg-surface"
             }`}
           >
-            <span
-              className={`flex h-4 w-4 items-center justify-center rounded-full border text-[10px] font-bold ${
-                on ? "border-white/70 bg-white/95 text-accent" : "border-ink/30 text-transparent"
-              }`}
-            >
-              ✓
-            </span>
+            {on ? (
+              <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white/95 text-[10px] font-bold text-ink">
+                ✓
+              </span>
+            ) : (
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ background: personColor(persons, p.code) }}
+              />
+            )}
             {p.name}
           </button>
         );

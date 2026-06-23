@@ -30,6 +30,7 @@ import StatTile from "@/components/StatTile";
 import Wrapped from "@/components/Wrapped";
 import { Stagger } from "@/components/motion";
 import { useT } from "@/components/i18n/LanguageProvider";
+import { CHART_TOOLTIP_STYLE, CHART_TOOLTIP_LABEL } from "@/lib/chart";
 
 export default function StatisticsPage({
   trips,
@@ -161,7 +162,7 @@ export default function StatisticsPage({
               <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
               <Tooltip
                 cursor={{ fill: "var(--color-surface-2)" }}
-                contentStyle={{ borderRadius: 12, border: "1px solid var(--color-line)", fontSize: 12 }}
+                contentStyle={CHART_TOOLTIP_STYLE} labelStyle={CHART_TOOLTIP_LABEL}
               />
               <Bar dataKey="trips" name={t("common.trips")} fill="var(--color-accent)" radius={[4, 4, 0, 0]} />
             </BarChart>
@@ -208,7 +209,7 @@ export default function StatisticsPage({
                 <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
                 <Tooltip
                   cursor={{ stroke: "var(--color-line)" }}
-                  contentStyle={{ borderRadius: 12, border: "1px solid var(--color-line)", fontSize: 12 }}
+                  contentStyle={CHART_TOOLTIP_STYLE} labelStyle={CHART_TOOLTIP_LABEL}
                 />
                 <Area type="monotone" dataKey="total" name={t("stats.countriesTotal")} stroke="var(--color-accent)" strokeWidth={2.5} fill="url(#growthFill)" />
               </AreaChart>
@@ -222,7 +223,7 @@ export default function StatisticsPage({
               <BarChart data={ds.travelModeByYear} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <XAxis dataKey="year" tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
-                <Tooltip cursor={{ fill: "var(--color-surface-2)" }} contentStyle={{ borderRadius: 12, border: "1px solid var(--color-line)", fontSize: 12 }} />
+                <Tooltip cursor={{ fill: "var(--color-surface-2)" }} contentStyle={CHART_TOOLTIP_STYLE} labelStyle={CHART_TOOLTIP_LABEL} />
                 <Bar dataKey="car" stackId="a" fill="var(--color-accent)" />
                 <Bar dataKey="plane" stackId="a" fill="var(--color-arc)" />
                 <Bar dataKey="train" stackId="a" fill="#7d8c54" />
@@ -489,7 +490,7 @@ function CompareChart({
           <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: "var(--color-muted)" }} tickLine={false} axisLine={false} />
           <Tooltip
             cursor={{ fill: "var(--color-surface-2)" }}
-            contentStyle={{ borderRadius: 12, border: "1px solid var(--color-line)", fontSize: 12 }}
+            contentStyle={CHART_TOOLTIP_STYLE} labelStyle={CHART_TOOLTIP_LABEL}
           />
           <Bar dataKey="value" name={title} radius={[4, 4, 0, 0]}>
             {rows.map((r) => (

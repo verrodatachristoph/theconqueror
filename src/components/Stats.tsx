@@ -14,6 +14,7 @@ import {
 } from "recharts";
 import type { Trip } from "@/types/database.types";
 import { yearOf, totalFlights } from "@/lib/trips";
+import { CHART_TOOLTIP_STYLE, CHART_TOOLTIP_LABEL } from "@/lib/chart";
 import StatTile from "@/components/StatTile";
 import EmptyState from "@/components/EmptyState";
 import { Stagger, Item } from "@/components/motion";
@@ -120,11 +121,8 @@ export default function Stats({ trips }: { trips: Trip[] }) {
             />
             <Tooltip
               cursor={{ fill: "var(--color-surface-2)" }}
-              contentStyle={{
-                borderRadius: 12,
-                border: "1px solid var(--color-line)",
-                fontSize: 12,
-              }}
+              contentStyle={CHART_TOOLTIP_STYLE}
+              labelStyle={CHART_TOOLTIP_LABEL}
             />
             <Bar dataKey="trips" name={t("common.trips")} fill="var(--color-accent)" radius={[4, 4, 0, 0]} />
           </BarChart>
@@ -148,13 +146,7 @@ export default function Stats({ trips }: { trips: Trip[] }) {
                 <Cell key={a.name} fill={TRAVEL_MODE_COLORS[a.name] ?? "var(--color-country)"} />
               ))}
             </Pie>
-            <Tooltip
-              contentStyle={{
-                borderRadius: 12,
-                border: "1px solid var(--color-line)",
-                fontSize: 12,
-              }}
-            />
+            <Tooltip contentStyle={CHART_TOOLTIP_STYLE} labelStyle={CHART_TOOLTIP_LABEL} />
           </PieChart>
         </ResponsiveContainer>
         <div className="mt-2 flex justify-center gap-4 text-xs text-muted">

@@ -14,8 +14,9 @@ import Stats from "@/components/Stats";
 function MapLoading() {
   const t = useT();
   return (
-    <div className="grid aspect-[980/500] w-full place-items-center rounded-xl bg-ocean text-sm text-muted">
-      {t("common.mapLoading")}
+    <div className="relative aspect-[980/500] w-full overflow-hidden rounded-2xl bg-ocean">
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.6s_infinite] bg-gradient-to-r from-transparent via-surface/25 to-transparent" />
+      <span className="sr-only">{t("common.mapLoading")}</span>
     </div>
   );
 }
