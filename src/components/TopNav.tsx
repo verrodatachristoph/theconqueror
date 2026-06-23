@@ -4,8 +4,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/auth-actions";
 import { useT } from "@/components/i18n/LanguageProvider";
-import LanguageSwitcher from "@/components/i18n/LanguageSwitcher";
 import ThemeToggle from "@/components/ThemeToggle";
+
+/** Original brand logo; swaps colour variant per theme. */
+function BrandLockup() {
+  return (
+    <>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/theConqueror_logo_dark.png" alt="The Conqueror" className="block h-12 w-auto md:h-14 dark:hidden" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/theConqueror_logo_light.png" alt="The Conqueror" className="hidden h-12 w-auto md:h-14 dark:block" />
+    </>
+  );
+}
 
 const LINKS = [
   { href: "/", key: "nav.map", match: undefined as string | undefined },
@@ -23,8 +34,8 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
   return (
     <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-3 md:gap-4">
-        <Link href="/" className="shrink-0 text-lg font-semibold tracking-tight md:text-xl">
-          The&nbsp;Conqueror
+        <Link href="/" className="shrink-0" aria-label="The Conqueror">
+          <BrandLockup />
         </Link>
         <nav className="no-scrollbar -mx-1 flex items-center gap-1 overflow-x-auto rounded-full border border-line bg-surface p-1">
           {LINKS.map((l) => {
@@ -46,13 +57,12 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
 
       <div className="flex shrink-0 items-center gap-2">
         {children}
-        <LanguageSwitcher />
         <ThemeToggle />
         <Link
           href="/admin"
           title={t("nav.admin")}
           aria-label={t("nav.admin")}
-          className={`flex h-9 w-9 items-center justify-center rounded-full border text-base transition-colors ${
+          className={`flex h-9 w-9 items-center justify-center rounded-full border text-xl leading-none transition-colors ${
             pathname.startsWith("/admin")
               ? "border-ink bg-ink text-surface"
               : "border-line text-muted hover:text-ink"

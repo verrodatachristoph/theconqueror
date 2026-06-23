@@ -176,6 +176,11 @@
     "tagline": "Everywhere the family has been.",
     "wrongPassword": "Wrong password."
   },
+  "map": {
+    "more": "+{n} more",
+    "visited": "Visited",
+    "wish": "Wishlist"
+  },
   "nav": {
     "admin": "Admin",
     "destinations": "Destinations",

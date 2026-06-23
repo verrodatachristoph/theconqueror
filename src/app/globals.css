@@ -17,9 +17,10 @@
   --color-muted: #8c8378; /* secondary text */
   --color-line: #e6dfd4; /* hairline borders */
 
-  --color-ocean: #e7edee; /* map sea */
-  --color-land: #ddd5c9; /* unvisited country */
-  --color-land-edge: #c8bdac; /* country borders */
+  --color-ocean: #eef4f5; /* map sea (gradient center) */
+  --color-ocean-deep: #dfe9eb; /* map sea (gradient edge) */
+  --color-country: #ddd5c9; /* unvisited country */
+  --color-country-edge: #c8bdac; /* country borders */
 
   --color-accent: #2f6f6a; /* primary accent (teal) */
   --color-accent-soft: #cfe2de; /* light teal wash */
@@ -46,9 +47,10 @@ html {
   --color-muted: #9d9384; /* secondary text */
   --color-line: #3a342b; /* hairline borders */
 
-  --color-ocean: #161d1e; /* map sea */
-  --color-land: #38332a; /* unvisited country */
-  --color-land-edge: #4a4337; /* country borders */
+  --color-ocean: #16242a; /* map sea (gradient center) */
+  --color-ocean-deep: #0f181c; /* map sea (gradient edge) */
+  --color-country: #38332a; /* unvisited country */
+  --color-country-edge: #4a4337; /* country borders */
 
   --color-accent: #4a9d95; /* primary accent (teal) */
   --color-accent-soft: #234b46; /* deep teal wash */

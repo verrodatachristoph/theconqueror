@@ -44,7 +44,7 @@ const landFeatures = (
 
 type Hover =
   | { kind: "country"; iso3: string; name: string; trips: Trip[]; x: number; y: number }
-  | { kind: "dest"; trip: Trip; x: number; y: number }
+  | { kind: "dest"; trip: Trip; cover?: string | null; x: number; y: number }
   | null;
 
 type MapTrip = Trip & { cover_signed?: string | null };
@@ -64,6 +64,7 @@ export default function WorldMap({
   onSelectTrip?: (trip: Trip) => void;
   onSelectCountry?: (iso3: string) => void;
 }) {
+  const t = useT();
   const gRef = useRef<SVGGElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -195,12 +196,9 @@ export default function WorldMap({
         onPointerLeave={() => setHover(null)}
       >
         <defs>
-          <clipPath id="photo-dot-clip" clipPathUnits="userSpaceOnUse">
-            <circle cx={0} cy={0} r={10} />
-          </clipPath>
           <radialGradient id="ocean" cx="50%" cy="40%" r="78%">
-            <stop offset="0%" stopColor="#eef4f5" />
-            <stop offset="100%" stopColor="#dfe9eb" />
+            <stop offset="0%" stopColor="var(--color-ocean)" />
+            <stop offset="100%" stopColor="var(--color-ocean-deep)" />
           </radialGradient>
           <filter id="country-shadow" x="-4%" y="-4%" width="108%" height="108%">
             <feDropShadow dx="0" dy="0.8" stdDeviation="1" floodColor="#1b3a3f" floodOpacity="0.18" />
@@ -300,35 +298,10 @@ export default function WorldMap({
               );
             })}
 
-          {/* destination points — cover photo marker if available, else a dot */}
+          {/* destination points — simple dots; the cover photo shows in the hover card */}
           {dests.map((d, i) => {
             const p = projection(d.coord);
             if (!p) return null;
-            const cover = coverById.get(d.trip.id);
-            if (cover) {
-              return (
-                <g
-                  key={`dot-${i}`}
-                  transform={`translate(${p[0]},${p[1]}) scale(${1 / k})`}
-                  className="cursor-pointer"
-                  onPointerMove={(e) => moveTip(e, { kind: "dest", trip: d.trip } as never)}
-                  onPointerLeave={() => setHover(null)}
-                  onClick={() => onSelectTrip?.(d.trip)}
-                >
-                  <circle r={11} fill="var(--color-surface)" />
-                  <image
-                    href={cover}
-                    x={-10}
-                    y={-10}
-                    width={20}
-                    height={20}
-                    clipPath="url(#photo-dot-clip)"
-                    preserveAspectRatio="xMidYMid slice"
-                  />
-                  <circle r={10} fill="none" stroke="var(--color-surface)" strokeWidth={1.5} />
-                </g>
-              );
-            }
             const planned = isUpcoming(d.trip);
             return (
               <circle
@@ -340,7 +313,9 @@ export default function WorldMap({
                 stroke={planned ? "#6d5bd0" : "var(--color-surface)"}
                 strokeWidth={(planned ? 1.8 : 1) / k}
                 className="cursor-pointer"
-                onPointerMove={(e) => moveTip(e, { kind: "dest", trip: d.trip } as never)}
+                onPointerMove={(e) =>
+                  moveTip(e, { kind: "dest", trip: d.trip, cover: coverById.get(d.trip.id) } as never)
+                }
                 onPointerLeave={() => setHover(null)}
                 onClick={() => onSelectTrip?.(d.trip)}
               >
@@ -356,18 +331,18 @@ export default function WorldMap({
       <div className="pointer-events-none absolute bottom-5 left-5 flex items-center gap-3 rounded-xl bg-surface/85 px-3 py-1.5 text-[11px] text-muted shadow-sm backdrop-blur">
         <span className="flex items-center gap-1.5">
           <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "var(--color-accent)" }} />
-          besucht
+          {t("map.visited")}
         </span>
         {wishSet.size > 0 && (
           <span className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-sm" style={{ background: "#cf9a3f" }} />
-            Wunsch
+            {t("map.wish")}
           </span>
         )}
         {trips.some(isUpcoming) && (
           <span className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-full border-2" style={{ borderColor: "#6d5bd0" }} />
-            geplant
+            {t("common.planned")}
           </span>
         )}
       </div>
@@ -404,18 +379,28 @@ function MapTooltip({ hover }: { hover: NonNullable<Hover> }) {
               </li>
             ))}
             {hover.trips.length > 6 && (
-              <li className="text-muted">+{hover.trips.length - 6} weitere</li>
+              <li className="text-muted">{t("map.more", { n: hover.trips.length - 6 })}</li>
             )}
           </ul>
         </>
       ) : (
         <>
+          {hover.cover && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={hover.cover}
+              alt=""
+              className="mb-2 h-24 w-full rounded-lg object-cover"
+            />
+          )}
           <div className="font-medium text-ink">
             {hover.trip.place}
             {hover.trip.country ? `, ${hover.trip.country}` : ""}
           </div>
           <div className="mt-0.5 text-xs text-muted">
-            {yearOf(hover.trip) ?? ""} · {hover.trip.travel_mode ?? "—"} · {hover.trip.days ?? "?"} Tage
+            {yearOf(hover.trip) ?? ""}
+            {hover.trip.travel_mode ? ` · ${t("travelMode." + hover.trip.travel_mode)}` : ""} ·{" "}
+            {hover.trip.days ?? "?"} {t("common.days")}
           </div>
         </>
       )}

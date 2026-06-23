@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useMemo } from "react";
 import { createT, type TFunc } from "@/lib/i18n";
-import type { Locale } from "@/lib/i18n/config";
+import { defaultLocale, type Locale } from "@/lib/i18n/config";
 
 type Ctx = { locale: Locale; t: TFunc };
 const LanguageContext = createContext<Ctx | null>(null);
@@ -15,11 +15,11 @@ export function LanguageProvider({ locale, children }: { locale: Locale; childre
 
 export function useLocale(): Locale {
   const ctx = useContext(LanguageContext);
-  return ctx?.locale ?? "de";
+  return ctx?.locale ?? defaultLocale;
 }
 
 /** Translator hook for client components. */
 export function useT(): TFunc {
   const ctx = useContext(LanguageContext);
-  return ctx?.t ?? createT("de");
+  return ctx?.t ?? createT(defaultLocale);
 }

@@ -120,14 +120,18 @@ export default function AppShell({
           </span>
         </header>
       ) : (
-        <TopNav>
+        <TopNav />
+      )}
+
+      {!readOnly && (
+        <div className="mb-5 flex justify-end">
           <button
             onClick={openNew}
             className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
           >
             {tr("home.newStay")}
           </button>
-        </TopNav>
+        </div>
       )}
 
       <div className="mb-5">
