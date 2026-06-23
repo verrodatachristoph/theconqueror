@@ -32,7 +32,7 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
   const isActive = (href: string, match?: string) => (match ? pathname.startsWith(match) : pathname === href);
 
   return (
-    <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <header className="sticky top-0 z-40 -mx-4 mb-6 flex flex-col gap-3 border-b border-line bg-parchment/85 px-4 py-3 backdrop-blur md:-mx-8 md:px-8 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-3 md:gap-4">
         <Link href="/" className="shrink-0" aria-label="The Conqueror">
           <BrandLockup />
@@ -55,28 +55,35 @@ export default function TopNav({ children }: { children?: React.ReactNode }) {
         </nav>
       </div>
 
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 items-center gap-3">
         {children}
         <ThemeToggle />
-        <Link
-          href="/admin"
-          title={t("nav.admin")}
-          aria-label={t("nav.admin")}
-          className={`flex h-10 w-10 items-center justify-center rounded-full border text-2xl leading-none transition-colors ${
-            pathname.startsWith("/admin")
-              ? "border-ink bg-ink text-surface"
-              : "border-line text-muted hover:text-ink"
-          }`}
-        >
-          ⚙
-        </Link>
-        <button
-          onClick={() => logout()}
-          className="rounded-full border border-line px-4 py-2 text-base text-muted transition-colors hover:text-ink"
-          title={t("nav.logout")}
-        >
-          {t("nav.logout")}
-        </button>
+        <div className="flex items-center gap-1.5 border-l border-line pl-3">
+          <Link
+            href="/admin"
+            title={t("nav.admin")}
+            aria-label={t("nav.admin")}
+            className={`flex h-10 w-10 items-center justify-center rounded-full border text-2xl leading-none transition-colors ${
+              pathname.startsWith("/admin")
+                ? "border-ink bg-ink text-surface"
+                : "border-line text-muted hover:text-ink"
+            }`}
+          >
+            ⚙
+          </Link>
+          <button
+            onClick={() => logout()}
+            title={t("nav.logout")}
+            aria-label={t("nav.logout")}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-muted transition-colors hover:text-ink"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5" aria-hidden>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
   );
