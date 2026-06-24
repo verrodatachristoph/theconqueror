@@ -234,34 +234,40 @@ export default function AppShell({
 
       {/* List */}
       <Reveal as="section">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <h2 className="mr-auto text-lg font-semibold">
-            {tr("home.stays")} <span className="text-sm font-normal text-muted">({visibleList.length})</span>
-          </h2>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={tr("home.searchPlaceholder")}
-            className="w-36 rounded-full border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-accent sm:w-48"
-          />
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value as typeof sort)}
-            className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-accent"
-            title={tr("home.sortTitle")}
-          >
-            <option value="date">{tr("home.sortNewest")}</option>
-            <option value="days">{tr("home.sortLongest")}</option>
-            <option value="country">{tr("home.sortCountry")}</option>
-          </select>
-          {!readOnly && (
-            <button
-              onClick={openNew}
-              className="rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
+        <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+          {/* Row 1 on mobile: title + primary action. Inline on desktop. */}
+          <div className="flex items-center gap-2 sm:contents">
+            <h2 className="mr-auto text-lg font-semibold">
+              {tr("home.stays")} <span className="text-sm font-normal text-muted">({visibleList.length})</span>
+            </h2>
+            {!readOnly && (
+              <button
+                onClick={openNew}
+                className="shrink-0 rounded-full bg-ink px-4 py-1.5 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95 sm:order-last"
+              >
+                {tr("home.newStay")}
+              </button>
+            )}
+          </div>
+          {/* Row 2 on mobile: search + sort. Inline on desktop. */}
+          <div className="flex items-center gap-2 sm:contents">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={tr("home.searchPlaceholder")}
+              className="min-w-0 flex-1 rounded-full border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-accent sm:w-48 sm:flex-none"
+            />
+            <select
+              value={sort}
+              onChange={(e) => setSort(e.target.value as typeof sort)}
+              className="shrink-0 rounded-full border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-accent"
+              title={tr("home.sortTitle")}
             >
-              {tr("home.newStay")}
-            </button>
-          )}
+              <option value="date">{tr("home.sortNewest")}</option>
+              <option value="days">{tr("home.sortLongest")}</option>
+              <option value="country">{tr("home.sortCountry")}</option>
+            </select>
+          </div>
         </div>
         <TripList trips={visibleList} persons={persons} onOpen={openDetail} />
       </Reveal>

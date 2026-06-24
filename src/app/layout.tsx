@@ -51,7 +51,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#f4f0e9",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f0e9" },
+    { media: "(prefers-color-scheme: dark)", color: "#1b1916" },
+  ],
 };
 
 export default async function RootLayout({
@@ -62,14 +65,23 @@ export default async function RootLayout({
   const locale = await getLocale();
   const store = await cookies();
   const themeCookie = store.get(THEME_COOKIE)?.value;
-  const isDark = isTheme(themeCookie) && themeCookie === "dark";
+  const hasThemeCookie = isTheme(themeCookie);
+  const isDark = hasThemeCookie && themeCookie === "dark";
 
   return (
     <html
       lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased${isDark ? " dark" : ""}`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+        {/* No explicit theme choice → follow the OS setting before first paint
+            (so mobile / installed PWA auto-adapt). An explicit cookie wins.
+            Runs parser-blocking as the first body node, before any content paints. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var m=document.cookie.match(/(?:^|; )${THEME_COOKIE}=(dark|light)/);var d=m?m[1]==='dark':matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);}catch(e){}})();`,
+          }}
+        />
         <Providers locale={locale}>
           <div className="flex-1">{children}</div>
           <Footer />

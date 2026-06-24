@@ -81,7 +81,7 @@ export default function StatisticsPage({
     <main className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8 md:py-10">
       <TopNav />
 
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center md:justify-between md:gap-3">
         <PersonFilter
           persons={persons}
           enabled={enabled}
@@ -92,7 +92,7 @@ export default function StatisticsPage({
           <select
             value={recapYear}
             onChange={(e) => setRecapYear(e.target.value === "all" ? "all" : Number(e.target.value))}
-            className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-accent"
+            className="min-w-0 flex-1 rounded-full border border-line bg-surface px-3 py-1.5 text-sm outline-none focus:border-accent md:flex-none"
             title={t("stats.recapPeriod")}
           >
             <option value="all">{t("stats.allYears")}</option>
@@ -104,7 +104,7 @@ export default function StatisticsPage({
           </select>
           <button
             onClick={() => setRecapOpen(true)}
-            className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform active:scale-95"
+            className="shrink-0 rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform active:scale-95"
             aria-label={t("stats.recap")}
           >
             🎁 {t("stats.recap")}

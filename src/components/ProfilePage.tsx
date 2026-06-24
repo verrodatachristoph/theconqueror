@@ -57,9 +57,9 @@ export default function ProfilePage({
       <TopNav />
 
       {/* Person submenu */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium uppercase tracking-wide text-muted">{t("profile.profileOf")}</span>
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-muted">{t("profile.profileOf")}</span>
           <PersonMenu persons={persons} current={person} />
         </div>
         <button
@@ -67,9 +67,12 @@ export default function ProfilePage({
             setEditing(null);
             setFormOpen(true);
           }}
-          className="rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95"
+          title={t("form.addTrip")}
+          aria-label={t("form.addTrip")}
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-2xl leading-none text-surface shadow-sm transition-transform hover:scale-[1.02] active:scale-95 md:h-auto md:w-auto md:px-4 md:py-2 md:text-sm md:font-medium"
         >
-          {t("form.addTrip")}
+          <span className="md:hidden">+</span>
+          <span className="hidden md:inline">{t("form.addTrip")}</span>
         </button>
       </div>
 

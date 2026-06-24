@@ -20,6 +20,6 @@ export async function middleware(req: NextRequest) {
 // Next internals and static assets.
 export const config = {
   matcher: [
-    "/((?!login|s/|opengraph-image|twitter-image|manifest.webmanifest|apple-icon|_next/static|_next/image|favicon.ico|favicon-light.svg|favicon-dark.svg|robots.txt).*)",
+    "/((?!login|s/|opengraph-image|twitter-image|manifest.webmanifest|apple-icon|_next/static|_next/image|favicon.ico|robots.txt|.*\\.(?:png|jpg|jpeg|svg|gif|webp|ico|woff2?)).*)",
   ],
 };

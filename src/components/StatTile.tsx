@@ -22,10 +22,10 @@ export default function StatTile({
   return (
     <motion.div
       variants={itemVariants}
-      className="rounded-2xl border border-line bg-surface p-4 transition-shadow hover:shadow-sm"
+      className="rounded-2xl border border-line bg-surface p-3 transition-shadow hover:shadow-sm md:p-4"
     >
       <div
-        className="truncate text-xl font-semibold leading-tight text-ink"
+        className="truncate text-lg font-semibold leading-tight text-ink md:text-xl"
         title={typeof value === "string" ? value : undefined}
       >
         {typeof value === "number" ? <CountUp value={value} /> : value}
